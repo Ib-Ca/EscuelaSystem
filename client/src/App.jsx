@@ -13,40 +13,62 @@ function App() {
   const [correo, setCorreo] = useState("");
   const [l_naci, setL_naci] = useState("");
   const [f_naci, setF_naci] = useState("");
-  const [transporte, setTransporte] = useState("");
+  const [transporte, setTransporte] = useState("Automóvil");
   const [distancia, setDistancia] = useState("");
   const [tiempo, setTiempo] = useState("");
 
   const [selectedpais, setSelectedpais] = useState("");
+  //obtener paises de db
   useEffect(() => {
     Axios.get("http://localhost:3000/server/paises").then((response) => {
       setPais(response.data);
+      const paisPredeterminado = response.data.find(
+        (option) => option.idNacionalidad === 14
+      );
+      if (paisPredeterminado) {
+        setSelectedpais(paisPredeterminado.idNacionalidad.toString());
+      }
     });
   }, []);
+  //cambiar pais en select
   const handle_paischange = (e) => {
     setSelectedpais(e.target.value);
   };
 
+  //obtener estado civil db
   const [selectedcivil, setSelectedcivil] = useState("");
   useEffect(() => {
-    Axios.get("http://localhost:3000/server/civil").then(
-      (response) => {
-        setCivil(response.data);
+    Axios.get("http://localhost:3000/server/civil").then((response) => {
+      setCivil(response.data);
+      const civilpredeterminado=response.data.find((option)=>option.idEstado_civil===1)
+      if (civilpredeterminado){
+        setSelectedcivil(civilpredeterminado.idEstado_civil.toString())
       }
-    );
+    });
   }, []);
+
+  //cambiar civil en select
   const handle_civilchange = (e) => {
     setSelectedcivil(e.target.value);
   };
 
+  //obtener tipos de documento db
   const [selecteddocu, setSelecteddocu] = useState("");
   useEffect(() => {
     Axios.get("http://localhost:3000/server/documento_tipo").then(
       (response) => {
         setTipo_docu(response.data);
+        const tipodocu_predeterminado = response.data.find(
+          (option) => option.idDocumento === 1
+        );
+        if (tipodocu_predeterminado) {
+          setSelecteddocu(tipodocu_predeterminado.idDocumento.toString());
+        }
       }
     );
   }, []);
+
+  //cambiar documento en select
   const handle_docuchange = (e) => {
     setSelecteddocu(e.target.value);
   };
@@ -55,10 +77,10 @@ function App() {
     Axios.post("http://localhost:3000/createAlumno", {
       nombre: nombre,
       apellidos: apellidos,
-      pais: pais,
+      pais: selectedpais,
       nro_docu: nro_docu,
-      tipo_docu: tipo_docu,
-      civil: civil,
+      tipo_docu: selecteddocu,
+      civil: selectedcivil,
       telefono: telefono,
       correo: correo,
       l_naci: l_naci,
@@ -70,6 +92,7 @@ function App() {
       alert("Alumno Registrado");
     });
   };
+
   return (
     <>
       <div className="datos">
@@ -98,7 +121,6 @@ function App() {
         <label>
           Selecciona un País:
           <select value={selectedpais} onChange={handle_paischange}>
-            <option value="">Elige un pais</option>
             {pais.map((pais) => (
               <option key={pais.idNacionalidad} value={pais.idNacionalidad}>
                 {pais.Descripcion}
@@ -120,7 +142,6 @@ function App() {
         <label>
           Tipo de documento:
           <select value={selecteddocu} onChange={handle_docuchange}>
-            <option value="">Elige un tipo de documento</option>
             {tipo_docu.map((tipo_docu) => (
               <option key={tipo_docu.idDocumento} value={tipo_docu.idDocumento}>
                 {tipo_docu.Tipo_docu}
@@ -131,7 +152,6 @@ function App() {
         <label>
           Estado Civil:{" "}
           <select value={selectedcivil} onChange={handle_civilchange}>
-            <option value="">Elige el estado civil</option>
             {civil.map((civil) => (
               <option key={civil.idEstado_civil} value={civil.idEstado_civil}>
                 {civil.Descripcion}
@@ -191,13 +211,14 @@ function App() {
             }}
             name=""
             id=""
+            value={transporte}
           >
-            <option value="auto">Automóvil</option>
-            <option value="camina">Caminando</option>
-            <option value="moto">Motocicleta</option>
-            <option value="carreta">Carreta</option>
-            <option value="bus">Colectivo</option>
-            <option value="bicicleta">Bicicleta</option>
+            <option value="Automóvil">Automóvil</option>
+            <option value="Caminando">Caminando</option>
+            <option value="Motocicleta">Motocicleta</option>
+            <option value="Carreta">Carreta</option>
+            <option value="Colectivo">Colectivo</option>
+            <option value="Bicicleta">Bicicleta</option>
           </select>
         </label>{" "}
         <label>

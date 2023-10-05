@@ -1,0 +1,50 @@
+    //obtener id
+    const selectedOption = tipo_docu.find(
+      (option) => option.idDocumento.toString() === e.target.value
+    );
+    if (selectedOption) {
+      const idDocumento = selectedOption.idDocumento;
+      console.log(idDocumento);
+    }
+
+
+
+    //obtener id
+    /*const paisElegido = pais.find(
+      (option) => option.idNacionalidad.toString() === e.target.value
+    );*/
+    /* if (paisElegido) {
+      const idNacionalidad = paisElegido.idNacionalidad;
+      console.log(idNacionalidad);
+   }*/
+
+
+//id civil
+          const elegido = civil.find(
+      (option) => option.idEstado_civil.toString() === e.target.value
+    );
+     if (elegido) {
+      const elegidoid = elegido.idEstado_civil;
+      console.log(elegidoid);
+   }
+
+#RESETEAR AUTO INCREMENT SQL
+SET @autoid:=0;
+UPDATE nacionalidad SET idNacionalidad = @autoid:= (@autoid+1);
+ALTER TABLE nacionalidad AUTO_INCREMENT = 1;
+
+
+
+  const nombre = req.body.nombre;
+  const apellidos = req.body.apellidos;
+  const pais = req.body.pais;
+  const nro_docu = req.body.nro_docu;
+  const tipo_docu = req.body.tipo_docu;
+  const civil = req.body.civil;
+  const telefono = req.body.telefono;
+  const correo = req.body.correo;
+  const l_naci = req.body.l_naci;
+  const f_naci = req.body.f_naci;
+  const transporte = req.body.transporte;
+  const distancia = req.body.distancia;
+  const tiempo = req.body.tiempo;

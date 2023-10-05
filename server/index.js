@@ -41,7 +41,6 @@ app.get("/server/documento_tipo", (req, res) => {
   });
 });
 
-
 app.get("/server/civil", (req, res) => {
   const civil = "SELECT * FROM estado_civil";
   db.query(civil, (err, result) => {
@@ -66,15 +65,115 @@ app.post("/createAlumno", (req, res) => {
   const transporte = req.body.transporte;
   const distancia = req.body.distancia;
   const tiempo = req.body.tiempo;
+  let idCivil;
+  let idTipodocu;
+  let idPais;
+  let idMovilidad;
+  let idestado=1
+  //query movilidad insert e id
   db.query(
-    "INSERT INTO alumnos (Nombre,Apellido,Numero_docu,Numero_telefono,Lugar_nacimiento,Fecha_nacimiento, Correo) VALUES (?,?,?,?,?,?,?)",
-    [nombre, apellidos, nro_docu, telefono, l_naci, f_naci, correo],
-    (err, result) => {
+    "INSERT INTO movilidad (descripcion, distancia, tiempo) VALUES (?,?,?)",
+    [transporte, distancia, tiempo],
+    function (err, result) {
       if (err) {
         console.log(err);
+        return res.status(500).send("Error en movilidades");
       } else {
-        console.log("Funciono!!!");
+         idMovilidad = result.insertId;
+        console.log("ID de movilidad:", idMovilidad);
       }
+      //query nacionalidad id
+      db.query(
+        "SELECT idNacionalidad, Descripcion FROM nacionalidad WHERE idNacionalidad=?",
+        [pais],
+        function (err, result) {
+          if (err) {
+            console.log(err);
+            return res.status(500).send("Error en paises");
+          } else {
+            if (result && result.length > 0) {
+              idPais = result[0].idNacionalidad;
+              //const nombre = result[0].Descripcion;
+              console.log("ID de pais: ", idPais);
+              //console.log("nombre de pais: ", nombre);
+            } else {
+              console.log("no se encontro na en paises");
+            }
+          }
+          //query documento id
+          db.query(
+            "SELECT idDocumento, Tipo_docu FROM documento WHERE idDocumento=?",
+            [tipo_docu],
+            function (err, result) {
+              if (err) {
+                console.log(err);
+                return res.status(500).send("Error en tipo documento");
+              } else {
+                if (result && result.length > 0) {
+                  idTipodocu = result[0].idDocumento;
+                  //const nombredocu = result[0].Tipo_docu;
+                  console.log("id docu: ", idTipodocu);
+                  //console.log("nombre docutipo: ", nombredocu);
+                } else {
+                  console.log("no se encontro coincidencia en tipo documento");
+                }
+              }
+              //query estado civil id
+              db.query(
+                "SELECT idEstado_civil, Descripcion FROM estado_civil WHERE idEstado_civil=?",
+                [civil],
+                function (err, result) {
+                  if (err) {
+                    console.log(err);
+                    return res.status(500).send("Error en estado civil");
+                  } else {
+                    if (result && result.length > 0) {
+                      idCivil = result[0].idEstado_civil;
+                      //const nombrecivil = result[0].Descripcion;
+                      console.log("id estado civil: ", idCivil);
+                      //console.log("nombre de estado civil: ", nombrecivil);
+                    } else {
+                      console.log(
+                        "No se encontro coincidencias en estado civil"
+                      );
+                    }
+                  }
+                  //query insertar alumno
+                  db.query(
+                    "INSERT INTO alumnos (Nombre,Apellido,Numero_docu,Numero_telefono,Lugar_nacimiento,Fecha_nacimiento,Correo,Estado_civil_idEstado_civil,Documento_idDocumento,Nacionalidad_idNacionalidad,Estado_alumno_idEstado_alumno,Movilidad_idMovilidad) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    [
+                      nombre,
+                      apellidos,
+                      nro_docu,
+                      telefono,
+                      l_naci,
+                      f_naci,
+                      correo,
+                      idCivil,
+                      idTipodocu,
+                      idPais,
+                      idestado,
+                      idMovilidad,
+                    ],
+                    function (err, result) {
+                      if (err) {
+                        console.log(err);
+                        return res
+                          .status(500)
+                          .send("Error en ingreso de alumno");
+                      } else {
+                        const idAlumno = result.insertId;
+                        console.log("El id del alumno es: ", idAlumno);
+                      }
+                      //
+                    }
+                  );
+                }
+              );
+            }
+          );
+        }
+      );
     }
   );
 });

@@ -69,7 +69,7 @@ app.post("/createAlumno", (req, res) => {
   let idTipodocu;
   let idPais;
   let idMovilidad;
-  let idestado=1
+  let idestado = 1;
   //query movilidad insert e id
   db.query(
     "INSERT INTO movilidad (descripcion, distancia, tiempo) VALUES (?,?,?)",
@@ -79,7 +79,7 @@ app.post("/createAlumno", (req, res) => {
         console.log(err);
         return res.status(500).send("Error en movilidades");
       } else {
-         idMovilidad = result.insertId;
+        idMovilidad = result.insertId;
         console.log("ID de movilidad:", idMovilidad);
       }
       //query nacionalidad id
@@ -164,6 +164,7 @@ app.post("/createAlumno", (req, res) => {
                       } else {
                         const idAlumno = result.insertId;
                         console.log("El id del alumno es: ", idAlumno);
+                        return res.status(200).send("Alumno registrado con éxito")
                       }
                       //
                     }
@@ -176,6 +177,16 @@ app.post("/createAlumno", (req, res) => {
       );
     }
   );
+});
+
+app.get("/server/alumnos", (req, res) => {
+  const datos_alumnos = "SELECT * FROM alumnos";
+  db.query(datos_alumnos, (err, result) => {
+    if (err) {
+      throw err;
+    }
+    res.json(result);
+  });
 });
 
 app.listen(3000, () => {

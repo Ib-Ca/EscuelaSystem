@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `alumnos` (
   `Estado_civil_idEstado_civil` int NOT NULL,
   `Documento_idDocumento` int NOT NULL,
   `Nacionalidad_idNacionalidad` int NOT NULL,
-  `Semestre_idSemestre` int NOT NULL,
+  `Semestre_idSemestre` int DEFAULT NULL,
   `Estado_alumno_idEstado_alumno` int NOT NULL,
   `Movilidad_idMovilidad` int NOT NULL,
   PRIMARY KEY (`idAlumnos`),
@@ -48,9 +48,24 @@ CREATE TABLE IF NOT EXISTS `alumnos` (
   CONSTRAINT `fk_Alumnos_Movilidad1` FOREIGN KEY (`Movilidad_idMovilidad`) REFERENCES `movilidad` (`idMovilidad`),
   CONSTRAINT `fk_Alumnos_Nacionalidad1` FOREIGN KEY (`Nacionalidad_idNacionalidad`) REFERENCES `nacionalidad` (`idNacionalidad`),
   CONSTRAINT `fk_Alumnos_Semestre1` FOREIGN KEY (`Semestre_idSemestre`) REFERENCES `semestre` (`idSemestre`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.alumnos: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.alumnos: ~14 rows (aproximadamente)
+INSERT INTO `alumnos` (`idAlumnos`, `Nombre`, `Apellido`, `Numero_docu`, `Numero_telefono`, `Lugar_nacimiento`, `Fecha_nacimiento`, `Correo`, `Estado_civil_idEstado_civil`, `Documento_idDocumento`, `Nacionalidad_idNacionalidad`, `Semestre_idSemestre`, `Estado_alumno_idEstado_alumno`, `Movilidad_idMovilidad`) VALUES
+	(1, 'asda', 'dsa', 123, 2665, 'casa', '2023-10-06', 'hieq@dmsapm.com', 2, 2, 2, NULL, 1, 50),
+	(2, 'por fin', 'funca', 213, 9465, 'casa casita', '2023-10-03', 'aa@bb.com', 2, 2, 2, NULL, 1, 51),
+	(3, 'sa', 'dw', 123, 12344, 'sda', '2023-06-09', 'dsa@dsa.com', 3, 2, 14, NULL, 1, 52),
+	(4, 'Jose', 'Josesito', 491821, 895333666, 'Luxemburgo', '2011-01-03', 'jose@josesito.com', 3, 2, 4, NULL, 1, 53),
+	(5, 'Joser', 'Josesito', 491821, 895333666, 'Luxemburgo', '2011-01-03', 'jose@josesito.com', 3, 2, 4, NULL, 1, 54),
+	(6, 'qqq', 'www', 333, 5453, 'sdpoak', '2023-10-05', 'ewqewq@sdmpaa.com', 1, 1, 14, NULL, 1, 55),
+	(7, 'rere', 'www', 333, 5453, 'sdpoak', '2023-10-05', 'ewqewq@sdmpaa.com', 1, 1, 14, NULL, 1, 56),
+	(8, 'das', 'ew', 31232, 2651, 'dsa', '2023-10-02', 'dsad@gmail.com', 1, 1, 3, NULL, 1, 57),
+	(9, 'probando', 'probandero', 6515, 9894, 'dasdsa', '2023-10-01', 'dsad@sdad.com', 1, 1, 14, NULL, 1, 58),
+	(10, 'asda', '50', 65165, 5185, 'dplsak', '2023-10-01', 'dsa@gmail.com', 1, 1, 2, NULL, 1, 59),
+	(11, 'sda', 'dsa', 1265, 165, 'das', '2023-10-01', 'dsa@dlsa', 1, 1, 3, NULL, 1, 60),
+	(12, 'aaaaaa', 'bbbbb', 6516, 1981, 'dsaasd', '2023-10-02', 'dsa@sad.com', 1, 2, 6, NULL, 1, 61),
+	(13, 'YANOSE', 'ewqewq', 165, 6165, 'dsa', '2023-10-02', 'dsa@gam.com', 1, 1, 4, NULL, 1, 62),
+	(14, 'por favor', 'funciona', 656165, 1651, 'dasda', '2023-10-01', 'dasdsa@gmail.com', 1, 1, 14, NULL, 1, 63);
 
 -- Volcando estructura para tabla proyecto_db.asistencias
 CREATE TABLE IF NOT EXISTS `asistencias` (
@@ -185,9 +200,72 @@ CREATE TABLE IF NOT EXISTS `movilidad` (
   `distancia` int DEFAULT NULL,
   `tiempo` int DEFAULT NULL,
   PRIMARY KEY (`idMovilidad`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.movilidad: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.movilidad: ~62 rows (aproximadamente)
+INSERT INTO `movilidad` (`idMovilidad`, `descripcion`, `distancia`, `tiempo`) VALUES
+	(2, '', 123, 123),
+	(3, 'moto', 456465, 32132),
+	(4, 'auto', 456465, 32132),
+	(5, '', 78, 90),
+	(6, 'Automóvil', 85, 90),
+	(7, 'Carreta', 85, 90),
+	(8, 'Colectivo', 45, 90),
+	(9, 'Caminando', 45, 90),
+	(10, 'Carreta', 50, 33),
+	(11, 'Motocicleta', 23, 99),
+	(12, 'Caminando', 55, 33),
+	(13, 'Caminando', 55, 33),
+	(14, 'Automóvil', 20, 30),
+	(15, 'Automóvil', 66, 99),
+	(16, 'Automóvil', 66, 99),
+	(17, 'Caminando', 1, 1),
+	(18, 'Caminando', 2, 2),
+	(19, 'Motocicleta', 3, 3),
+	(20, 'Carreta', 4, 4),
+	(21, 'Carreta', 5, 5),
+	(22, 'Bicicleta', 5, 5),
+	(23, 'Caminando', 6, 6),
+	(24, 'Caminando', 333, 666),
+	(25, 'Motocicleta', 9, 9),
+	(26, 'Colectivo', 66, 666),
+	(27, 'Colectivo', 66, 666),
+	(28, 'Caminando', 321321, 66621),
+	(29, 'Automóvil', 999, 999),
+	(30, 'Caminando', 32, 32),
+	(31, 'Caminando', 1, 32),
+	(32, 'Caminando', 66, 88),
+	(33, 'Caminando', 66, 90),
+	(34, 'Caminando', 99, 115),
+	(35, 'Motocicleta', 33, 121),
+	(36, 'Bicicleta', 99, 3),
+	(37, 'Bicicleta', 99, 3),
+	(38, 'Caminando', 999, 32132),
+	(39, 'Motocicleta', 165, 2),
+	(40, 'Motocicleta', 165, 2),
+	(41, 'Carreta', 30, 88),
+	(42, 'Automóvil', 45, 66),
+	(43, 'Automóvil', 45, 90),
+	(44, 'Automóvil', 45, 90),
+	(45, 'Carreta', 1561, 16),
+	(46, 'Automóvil', 90844, 213),
+	(47, 'Carreta', 1234, 531),
+	(48, 'Automóvil', 12312, 312),
+	(49, 'Colectivo', 12, 33),
+	(50, 'Automóvil', 155, 9859),
+	(51, 'Motocicleta', 77, 99),
+	(52, 'Carreta', 312, 31),
+	(53, 'Carreta', 80, 30),
+	(54, 'Carreta', 80, 30),
+	(55, 'Bicicleta', 165, 89),
+	(56, 'Bicicleta', 165, 89),
+	(57, 'Automóvil', 253, 32),
+	(58, 'Automóvil', 6166, 61655),
+	(59, 'Automóvil', 1231, 156156),
+	(60, 'Automóvil', 213, 9581),
+	(61, 'Automóvil', 61, 30),
+	(62, 'Automóvil', 16, 129),
+	(63, 'Automóvil', 132, 48);
 
 -- Volcando estructura para tabla proyecto_db.nacionalidad
 CREATE TABLE IF NOT EXISTS `nacionalidad` (

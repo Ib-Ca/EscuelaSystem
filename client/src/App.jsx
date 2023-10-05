@@ -16,6 +16,9 @@ function App() {
   const [transporte, setTransporte] = useState("Automóvil");
   const [distancia, setDistancia] = useState("");
   const [tiempo, setTiempo] = useState("");
+  const [alumnos, setAlumnos] = useState([]);
+
+
 
   const [selectedpais, setSelectedpais] = useState("");
   //obtener paises de db
@@ -40,9 +43,11 @@ function App() {
   useEffect(() => {
     Axios.get("http://localhost:3000/server/civil").then((response) => {
       setCivil(response.data);
-      const civilpredeterminado=response.data.find((option)=>option.idEstado_civil===1)
-      if (civilpredeterminado){
-        setSelectedcivil(civilpredeterminado.idEstado_civil.toString())
+      const civilpredeterminado = response.data.find(
+        (option) => option.idEstado_civil === 1
+      );
+      if (civilpredeterminado) {
+        setSelectedcivil(civilpredeterminado.idEstado_civil.toString());
       }
     });
   }, []);
@@ -74,6 +79,8 @@ function App() {
   };
 
   const addAlumno = () => {
+    //alert("presiono boton")
+    console.log("presion boton")
     Axios.post("http://localhost:3000/createAlumno", {
       nombre: nombre,
       apellidos: apellidos,
@@ -88,10 +95,31 @@ function App() {
       transporte: transporte,
       distancia: distancia,
       tiempo: tiempo,
-    }).then(() => {
+    })
+    .then(function (response) {
+      listaAlumnos();
+      console.log("entro en then: ", response);
       alert("Alumno Registrado");
+    })
+    .catch(function (error) {
+      console.log("Error en axios: ", error);
+      alert("hubo un error");
     });
+};
+
+  const listaAlumnos = () => {
+    Axios.get("http://localhost:3000/server/alumnos")
+      .then((response) => {
+        setAlumnos(response.data);
+      })
+      .catch((error) => {
+        console.error("Error al obtener alumnos:", error);
+      });
   };
+
+  useEffect(() => {
+    listaAlumnos;
+  }, []);
 
   return (
     <>
@@ -245,6 +273,17 @@ function App() {
         </label>
         <button onClick={addAlumno}>Guardar</button>
       </div>
+      <div className="alumnos_lisa">
+        <button onClick={listaAlumnos}>Mostrar Alumnos</button>
+        {alumnos.map((value, key) => {
+          return (
+            <div key={key} className="">
+              {value.Nombre}
+            </div>
+          );
+        })}
+      </div>
+  
     </>
   );
 }

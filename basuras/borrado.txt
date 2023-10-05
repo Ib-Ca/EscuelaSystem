@@ -34,17 +34,26 @@ UPDATE nacionalidad SET idNacionalidad = @autoid:= (@autoid+1);
 ALTER TABLE nacionalidad AUTO_INCREMENT = 1;
 
 
+     .then(function (response) {
+        listaAlumnos();
+        console.log("entro en then: ", response);
+        alert("Alumno Registrado");
+      })
+      .catch(function (error) {
+        console.log("Error en axios: ", error);
+        alert("hubo un error");
+      });
+  };
 
-  const nombre = req.body.nombre;
-  const apellidos = req.body.apellidos;
-  const pais = req.body.pais;
-  const nro_docu = req.body.nro_docu;
-  const tipo_docu = req.body.tipo_docu;
-  const civil = req.body.civil;
-  const telefono = req.body.telefono;
-  const correo = req.body.correo;
-  const l_naci = req.body.l_naci;
-  const f_naci = req.body.f_naci;
-  const transporte = req.body.transporte;
-  const distancia = req.body.distancia;
-  const tiempo = req.body.tiempo;
+  
+const [responses,setResponses]=useState()
+
+    .then(function (response) {
+      console.log("ENTRO EN THEN",response);
+      setResponses(response.data.title);
+    })
+    .catch(function (error) {
+      console.log(error);
+      setResponse("ENTRO EN CATCH");
+    });
+  };

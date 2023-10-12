@@ -164,7 +164,9 @@ app.post("/createAlumno", (req, res) => {
                       } else {
                         const idAlumno = result.insertId;
                         console.log("El id del alumno es: ", idAlumno);
-                        return res.status(200).send("Alumno registrado con éxito")
+                        return res
+                          .status(200)
+                          .send("Alumno registrado con éxito");
                       }
                       //
                     }
@@ -180,7 +182,8 @@ app.post("/createAlumno", (req, res) => {
 });
 
 app.get("/server/alumnos", (req, res) => {
-  const datos_alumnos = "SELECT * FROM alumnos";
+  const datos_alumnos =
+    "SELECT *, DATE_FORMAT(Fecha_nacimiento, '%Y-%m-%d') AS Fecha_nacimiento FROM alumnos";
   db.query(datos_alumnos, (err, result) => {
     if (err) {
       throw err;
@@ -188,6 +191,8 @@ app.get("/server/alumnos", (req, res) => {
     res.json(result);
   });
 });
+
+
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

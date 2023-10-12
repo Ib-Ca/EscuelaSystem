@@ -57,3 +57,50 @@ const [responses,setResponses]=useState()
       setResponse("ENTRO EN CATCH");
     });
   };
+
+
+
+
+  CODIGO DE TABLA 
+   <div key={key} className="">
+              {value.Nombre}
+            </div>
+
+
+
+
+
+  const modificar = (value) => {
+    setEditar(true);
+    setNombre(value.Nombre);
+    setApellidos(value.Apellido);
+    setNro_docu(value.Numero_docu);
+    setCorreo(value.Correo);
+    setTelefono(value.Numero_telefono);
+    // setSemeste(value.Semestre_idSemestre)
+    //value.Movilidad_idMovilidad
+  };
+
+
+
+
+
+
+
+FECHAAAAAAAAA
+
+
+
+      const fechaServidor = new Date(valor.Fecha_nacimiento);
+    const dia = fechaServidor.getDate().toString().padStart(2, "0");
+    const mes = (fechaServidor.getMonth() + 1).toString().padStart(2, "0");
+    const anio = fechaServidor.getFullYear();
+    setF_naci(`${dia}/${mes}/${anio}`);
+
+
+    const formattedDate = formatDate(f_naci);
+
+     const formatDate = (date) => {
+    const [month, day, year] = date.split("/");
+    return `${year}-${month}-${day}`;
+  };

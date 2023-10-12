@@ -150,7 +150,6 @@ function FormularioAñadir() {
 
   const clean = () => {
     setEdit(false);
-
     setNombre("");
     setApellidos("");
     setSelectedpais();

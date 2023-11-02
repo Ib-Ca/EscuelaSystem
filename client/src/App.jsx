@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import Axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -22,7 +22,7 @@ function FormularioAñadir() {
   const [correo, setCorreo] = useState("");
   const [l_naci, setL_naci] = useState("");
   const [f_naci, setF_naci] = useState(undefined);
-  const [transporte, setTransporte] = useState("Automóvil");
+  const [tipo_movi, settipo_movi] = useState([]);
   const [distancia, setDistancia] = useState("");
   const [tiempo, setTiempo] = useState("");
   const [alumnos, setAlumnos] = useState([]);
@@ -66,6 +66,25 @@ function FormularioAñadir() {
     setSelectedcivil(e.target.value);
   };
 
+  const [selectedtransp, setSelectedtransp] = useState("");
+  //obtener movilidad de db y component
+  useEffect(() => {
+    Axios.get("http://localhost:3000/server/movilidad").then((response) => {
+      settipo_movi(response.data);
+
+      const movilidadPredeterminada = response.data.find(
+        (option) => option.idMovilidad === 0
+      );
+      if (movilidadPredeterminada) {
+        setSelectedtransp(movilidadPredeterminada.idMovilidad.toString());
+      }
+    });
+  }, []);
+  //cambiar movilidad en select
+  const handle_movichange = (e) => {
+    setSelectedtransp(e.target.value);
+  };
+
   //obtener tipos de documento db y mostarr en componente
   const [selecteddocu, setSelecteddocu] = useState("");
   useEffect(() => {
@@ -100,13 +119,13 @@ function FormularioAñadir() {
       correo: correo,
       l_naci: l_naci,
       f_naci: f_naci,
-      transporte: transporte,
-      distancia: distancia,
+      tipo_movi: selectedtransp,
       tiempo: tiempo,
+      distancia: distancia,
     })
       .then(function (response) {
         listaAlumnos();
-        console.log("entro en then: ", response);
+        // console.log("entro en then: ", response);
         alert("Alumno Registrado");
       })
       .catch(function (error) {
@@ -119,18 +138,64 @@ function FormularioAñadir() {
     Axios.get("http://localhost:3000/server/alumnos")
       .then((response) => {
         setAlumnos(response.data);
+        // console.log("AL SACAR DE DB",response);
       })
       .catch((error) => {
         console.error("Error al obtener alumnos:", error);
       });
   };
+
   useEffect(() => {
     listaAlumnos();
   }, []);
 
+  //actualizar alumnos
+  const updateAlumno = () => {
+    Axios.put("http://localhost:3000/updateAlumno", {
+      idAlumno: idAl,
+      nombre: nombre,
+      apellidos: apellidos,
+      pais: selectedpais,
+      nro_docu: nro_docu,
+      tipo_docu: selecteddocu,
+      civil: selectedcivil,
+      telefono: telefono,
+      correo: correo,
+      l_naci: l_naci,
+      f_naci: f_naci,
+      tipo_movi: selectedtransp,
+      tiempo: tiempo,
+      distancia: distancia,
+    })
+      .then(function (response) {
+        listaAlumnos();
+        // console.log("entro en then: ", response);
+        alert("Alumno Actualizado");
+      })
+      .catch(function (error) {
+        console.log("Error en axios: ", error);
+        alert("hubo un error");
+      });
+  };
+
+  //eliminar alumnos
+  const deleteAlumno = (idAlumno) => {
+    Axios.delete(`http://localhost:3000/deleteAlumno/${idAlumno}`)
+      .then(function (response) {
+        listaAlumnos();
+        // console.log("entro en then: ", response);
+        alert("Alumno Eliminado");
+      })
+      .catch(function (error) {
+        console.log("Error en axios: ", error);
+        alert("hubo un error");
+      });
+  };
+
+  //rellenar el formulario al presionar editar
   const editalumn = (valor) => {
     setEdit(true);
-    console.log(valor);
+    //console.log(valor);
     setNombre(valor.Nombre);
     setApellidos(valor.Apellido);
     setSelectedpais(valor.Nacionalidad_idNacionalidad);
@@ -141,32 +206,33 @@ function FormularioAñadir() {
     setCorreo(valor.Correo);
     setL_naci(valor.Lugar_nacimiento);
     setF_naci(valor.Fecha_nacimiento);
-    setTransporte();
-    setDistancia();
-    setTiempo();
+    setSelectedtransp(valor.Movilidad_idMovilidad);
+    setDistancia(valor.distancia);
+    setTiempo(valor.tiempo);
     setIdal(valor.idAlumnos);
-    console.log(idAl);
+    //console.log(idAl);
   };
-
+  //limpiar
   const clean = () => {
     setEdit(false);
-    setNombre("");
+    formRef.current.reset();
+   /* setNombre("");
     setApellidos("");
-    setSelectedpais();
+    setSelectedpais(0);
     setNro_docu("");
-    setSelecteddocu();
-    setSelectedcivil();
+    setSelecteddocu(0);
+    setSelectedcivil(0);
     setTelefono("");
     setCorreo("");
     setL_naci("");
     setF_naci();
-    setTransporte("");
+    setSelectedtransp(0);
     setDistancia("");
     setTiempo("");
-    setIdal("");
-    console.log(idAl);
+    setIdal(""); */
+    //console.log(idAl);
   };
-
+  const formRef = useRef(null);
   return (
     <>
       <Container>
@@ -176,7 +242,7 @@ function FormularioAñadir() {
               Sistema de Alumnos
             </Card.Header>
             <Card.Body>
-              <Form onSubmit={addAlumno}>
+              <Form ref={formRef} onSubmit={addAlumno}>
                 <Row className="mb-3">
                   <Form.Group as={Col} md="6" controlId="nombres">
                     <Form.Label>Nombres*</Form.Label>
@@ -323,18 +389,6 @@ function FormularioAñadir() {
                   </Form.Group>
                 </Row>
                 <Row className="mb-3">
-                  <Form.Group as={Col} md="5" controlId="distancia">
-                    <Form.Label>Distancia a la Institucion*</Form.Label>
-                    <Form.Control
-                      required
-                      onChange={(event) => {
-                        setDistancia(event.target.value);
-                      }}
-                      type="number"
-                      placeholder="En km"
-                      value={distancia}
-                    />
-                  </Form.Group>
                   <Form.Group as={Col} md="4" controlId="tiempo">
                     <Form.Label>Tiempo en llegar*</Form.Label>
                     <Form.Control
@@ -347,21 +401,33 @@ function FormularioAñadir() {
                       value={tiempo}
                     />
                   </Form.Group>
-                  <Form.Group as={Col} md="3" controlId="transporte">
-                    <Form.Label>Transporte</Form.Label>
-                    <Form.Select
+                  <Form.Group as={Col} md="4" controlId="distancia">
+                    <Form.Label>Distancia*</Form.Label>
+                    <Form.Control
                       required
                       onChange={(event) => {
-                        setTransporte(event.target.value);
+                        setDistancia(event.target.value);
                       }}
-                      value={transporte}
+                      type="number"
+                      placeholder="En km"
+                      value={distancia}
+                    />
+                  </Form.Group>
+                  <Form.Group as={Col} md="4" controlId="tipo_movi">
+                    <Form.Label>Tipo de Movilidad</Form.Label>
+                    <Form.Select
+                      required
+                      value={selectedtransp}
+                      onChange={handle_movichange}
                     >
-                      <option value="Automóvil">Automóvil</option>
-                      <option value="Caminando">Caminando</option>
-                      <option value="Motocicleta">Motocicleta</option>
-                      <option value="Carreta">Carreta</option>
-                      <option value="Colectivo">Colectivo</option>
-                      <option value="Bicicleta">Bicicleta</option>
+                      {tipo_movi.map((tipo_movi) => (
+                        <option
+                          key={tipo_movi.idMovilidad}
+                          value={tipo_movi.idMovilidad}
+                        >
+                          {tipo_movi.descripcion}
+                        </option>
+                      ))}
                     </Form.Select>
                   </Form.Group>
                 </Row>
@@ -369,7 +435,11 @@ function FormularioAñadir() {
                   <div className="d-grid gap-2">
                     {edit ? (
                       <ButtonGroup aria-label="Basic example">
-                        <Button variant="warning" size="lg">
+                        <Button
+                          variant="warning"
+                          size="lg"
+                          onClick={updateAlumno}
+                        >
                           Guardar Cambios
                         </Button>
                         <Button variant="danger" size="lg" onClick={clean}>
@@ -424,12 +494,20 @@ function FormularioAñadir() {
                       <Button
                         variant="warning"
                         onClick={() => {
+                          //console.log(value);
                           editalumn(value);
                         }}
                       >
                         Editar
                       </Button>
-                      <Button variant="danger">Eliminar</Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          deleteAlumno(value.idAlumnos);
+                        }}
+                      >
+                        Eliminar
+                      </Button>
                     </ButtonGroup>
                   </td>
                 </tr>

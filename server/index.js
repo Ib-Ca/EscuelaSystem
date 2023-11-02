@@ -192,7 +192,7 @@ app.get("/server/alumnos", (req, res) => {
   });
 });
 
-
+//SACAR DATOS DE LA TABLA MOVILIDAD
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

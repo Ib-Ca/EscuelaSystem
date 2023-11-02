@@ -130,13 +130,13 @@ function FormularioAñadir() {
 
   const editalumn = (valor) => {
     setEdit(true);
-
+    console.log(valor);
     setNombre(valor.Nombre);
     setApellidos(valor.Apellido);
-    setSelectedpais(valor.pais);
+    setSelectedpais(valor.Nacionalidad_idNacionalidad);
     setNro_docu(valor.Numero_docu);
-    setSelecteddocu(valor.tipo_docu);
-    setSelectedcivil();
+    setSelecteddocu(valor.Documento_idDocumento);
+    setSelectedcivil(valor.Estado_civil_idEstado_civil);
     setTelefono(valor.Numero_telefono);
     setCorreo(valor.Correo);
     setL_naci(valor.Lugar_nacimiento);
@@ -401,8 +401,8 @@ function FormularioAñadir() {
               <th>Teléfono</th>
               <th>Semestre</th>
               <th>Movilidad</th>
+              <th>Nacimiento</th>
               <th>Acciones</th>
-              <th>asdas</th>
             </tr>
           </thead>
           <tbody>

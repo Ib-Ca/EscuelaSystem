@@ -1,10 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import FormularioAñadir from './App.jsx'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import FormularioAñadir from "./App.jsx";
+import NavbarDefault from './components/navbar'
+import { Inicio } from "./Inicio.jsx";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <FormularioAñadir/>
-  </React.StrictMode>,
-)
+    <Router>
+    <NavbarDefault/>
+      <Routes>
+        <Route exact path="/" element={<Inicio/>}/>
+        <Route path="/alumnoAdd" element={<FormularioAñadir/>}/>
+      </Routes>
+    </Router>
+  </React.StrictMode>
+);

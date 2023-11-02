@@ -35,7 +35,7 @@ export default function NavbarDefault() {
               <Offcanvas.Body>
                 <DropdownButton id="admin" title="ADMINISTRADORES">
                   <Dropdown.Item href="/alumnoAdd">Añadir Alumno</Dropdown.Item>
-                  <Dropdown.Item href="">Placeholder2</Dropdown.Item>
+                  <Dropdown.Item href="/materiaAdd">Añadir Materia</Dropdown.Item>
                   <Dropdown.Item href="">Placeholder3</Dropdown.Item>
                 </DropdownButton>
                 <DropdownButton id="admin" title="DOCENTES">

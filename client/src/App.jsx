@@ -241,7 +241,7 @@ function FormularioAñadir() {
         <div className="d-flex justify-content-center align-items-center">
           <Card>
             <Card.Header className="text-center" as="h3">
-              Sistema de Alumnos
+              Añadir Alumnos
             </Card.Header>
             <Card.Body>
               <Form ref={formRef} onSubmit={addAlumno}>

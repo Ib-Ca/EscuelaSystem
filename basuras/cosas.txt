@@ -2,6 +2,8 @@ https://codepen.io/miketricking/pen/BjyPPv
 express session https://www.npmjs.com/package/express-session
 mysql node https://www.npmjs.com/package/mysql
 
+rafce para buildear rapido
+
 
 
 https://mfikri.com/en/blog/react-express-mysql-authentication

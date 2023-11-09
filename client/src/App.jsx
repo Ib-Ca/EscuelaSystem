@@ -218,20 +218,20 @@ function FormularioAñadir() {
   const clean = () => {
     setEdit(false);
     formRef.current.reset();
-   /* setNombre("");
+    setNombre("");
     setApellidos("");
-    setSelectedpais(0);
+    setSelectedpais(1);
     setNro_docu("");
-    setSelecteddocu(0);
-    setSelectedcivil(0);
+    setSelecteddocu(1);
+    setSelectedcivil(1);
     setTelefono("");
     setCorreo("");
     setL_naci("");
     setF_naci();
-    setSelectedtransp(0);
+    setSelectedtransp(1);
     setDistancia("");
     setTiempo("");
-    setIdal(""); */
+    setIdal(""); 
     //console.log(idAl);
   };
   const formRef = useRef(null);

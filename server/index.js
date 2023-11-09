@@ -211,9 +211,8 @@ app.get("/server/alumnos", (req, res) => {
   });
 });
 
-
 app.put("/updateAlumno", (req, res) => {
-  const idAlumno= req.body.idAlumno;
+  const idAlumno = req.body.idAlumno;
   const nombre = req.body.nombre;
   const apellidos = req.body.apellidos;
   const pais = req.body.pais;
@@ -325,15 +324,19 @@ app.put("/updateAlumno", (req, res) => {
                       idMovilidad,
                       tiempo,
                       distancia,
-                      idAlumno // ¡Asegúrate de tener el ID del alumno aquí!
+                      idAlumno, // ¡Asegúrate de tener el ID del alumno aquí!
                     ],
                     function (err, result) {
                       if (err) {
                         console.log(err);
-                        return res.status(500).send("Error en actualización de alumno");
+                        return res
+                          .status(500)
+                          .send("Error en actualización de alumno");
                       } else {
                         console.log("El alumno se ha actualizado con éxito");
-                        return res.status(200).send("Alumno actualizado con éxito");
+                        return res
+                          .status(200)
+                          .send("Alumno actualizado con éxito");
                       }
                     }
                   );
@@ -348,18 +351,67 @@ app.put("/updateAlumno", (req, res) => {
 });
 
 app.delete("/deleteAlumno/:idAlumno", (req, res) => {
-  const idAlumno= req.params.idAlumno;
+  const idAlumno = req.params.idAlumno;
   const query = "DELETE FROM alumnos WHERE idAlumnos = ?";
   db.query(query, idAlumno, (err, result) => {
     if (err) {
-      console.error('Error al eliminar el alumno:', err);
-      return res.status(500).send('Error al eliminar el alumno');
+      console.error("Error al eliminar el alumno:", err);
+      return res.status(500).send("Error al eliminar el alumno");
     }
-    return res.status(200).send(`Alumno con ID ${idAlumno} eliminado correctamente`);
+    return res
+      .status(200)
+      .send(`Alumno con ID ${idAlumno} eliminado correctamente`);
   });
 });
 
+app.post("/createMateria", (req, res) => {
+  const materia = req.body.materia;
+  const carga = req.body.carga;
+  db.query(
+    "INSERT INTO materias(Nombre, Carga_horaria) VALUES (?,?)",
+    [materia, carga],
+    function (err, result) {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Error en el ingreso de materia");
+      } else {
+        return res.status(200).send("Materia guardada");
+      }
+    }
+  );
+});
 
+app.get("/server/materia", (req, res) => {
+  const datos_materia = "SELECT * FROM materias";
+  db.query(datos_materia, (err, result) => {
+    if (err) {
+      throw err;
+    }
+    res.json(result);
+  });
+});
+
+app.put("/updateMateria", (req, res) => {
+  const idMaterias = req.body.idMaterias;
+  const materia = req.body.materia;
+  const carga = req.body.carga;
+  console.log("la id es: ",idMaterias);
+  console.log(materia);
+  console.log(carga);
+  db.query(
+    "UPDATE materias SET Nombre=?, Carga_horaria=? WHERE idMaterias=?",
+    [materia, carga, idMaterias],
+    function (err, result) {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Error en la actualizacion de la materia");
+      } else {
+        console.log("Actualizado con exito");
+        return res.status(200).send("Alumno actualizado con exito");
+      }
+    }
+  );
+});
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

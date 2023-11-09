@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import FormularioAñadir from "./App.jsx";
 import NavbarDefault from './components/navbar'
-import { Materias } from "../Materias.jsx";
+import { Materias } from "./Materias.jsx";
 import { Inicio } from "./Inicio.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 

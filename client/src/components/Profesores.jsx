@@ -11,7 +11,7 @@ import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 
-function FormularioAñadir() {
+function ProfesoresForm() {
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [pais, setPais] = useState([]);
@@ -20,12 +20,7 @@ function FormularioAñadir() {
   const [civil, setCivil] = useState([]);
   const [telefono, setTelefono] = useState("");
   const [correo, setCorreo] = useState("");
-  const [l_naci, setL_naci] = useState("");
-  const [f_naci, setF_naci] = useState(undefined);
-  const [tipo_movi, settipo_movi] = useState([]);
-  const [distancia, setDistancia] = useState("");
-  const [tiempo, setTiempo] = useState("");
-  const [alumnos, setAlumnos] = useState([]);
+  const [profesores, setProfesores] = useState([]);
   const [idAl, setIdal] = useState();
   const [edit, setEdit] = useState(false);
 
@@ -66,25 +61,6 @@ function FormularioAñadir() {
     setSelectedcivil(e.target.value);
   };
 
-  const [selectedtransp, setSelectedtransp] = useState("");
-  //obtener movilidad de db y component
-  useEffect(() => {
-    Axios.get("http://localhost:3000/server/movilidad").then((response) => {
-      settipo_movi(response.data);
-
-      const movilidadPredeterminada = response.data.find(
-        (option) => option.idMovilidad === 0
-      );
-      if (movilidadPredeterminada) {
-        setSelectedtransp(movilidadPredeterminada.idMovilidad.toString());
-      }
-    });
-  }, []);
-  //cambiar movilidad en select
-  const handle_movichange = (e) => {
-    setSelectedtransp(e.target.value);
-  };
-
   //obtener tipos de documento db y mostarr en componente
   const [selecteddocu, setSelecteddocu] = useState("");
   useEffect(() => {
@@ -106,9 +82,9 @@ function FormularioAñadir() {
     setSelecteddocu(e.target.value);
   };
 
-  //añadir alumnos
-  const addAlumno = () => {
-    Axios.post("http://localhost:3000/createAlumno", {
+  //añadir profesores
+  const addProfesor = () => {
+    Axios.post("http://localhost:3000/createProfesor", {
       nombre: nombre,
       apellidos: apellidos,
       pais: selectedpais,
@@ -117,42 +93,37 @@ function FormularioAñadir() {
       civil: selectedcivil,
       telefono: telefono,
       correo: correo,
-      l_naci: l_naci,
-      f_naci: f_naci,
-      tipo_movi: selectedtransp,
-      tiempo: tiempo,
-      distancia: distancia,
     })
       .then(function (response) {
-        listaAlumnos();
+        listaProfesor();
         // console.log("entro en then: ", response);
-        //alert("Alumno Registrado");
+        // alert("Profesor Registrado");
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
         alert("hubo un error");
       });
   };
-  //añadir los alumnos al componente
-  const listaAlumnos = () => {
-    Axios.get("http://localhost:3000/server/alumnos")
+  //añadir los profesores al componente
+  const listaProfesor = () => {
+    Axios.get("http://localhost:3000/server/profesores")
       .then((response) => {
-        setAlumnos(response.data);
+        setProfesores(response.data);
         // console.log("AL SACAR DE DB",response);
       })
       .catch((error) => {
-        console.error("Error al obtener alumnos:", error);
+        console.error("Error al obtener profesores:", error);
       });
   };
 
   useEffect(() => {
-    listaAlumnos();
+    listaProfesor();
   }, []);
 
-  //actualizar alumnos
-  const updateAlumno = () => {
-    Axios.put("http://localhost:3000/updateAlumno", {
-      idAlumno: idAl,
+  //actualizar profesores
+  const updateProfesor = () => {
+    Axios.put("http://localhost:3000/updateProfe", {
+      idProfesores: idAl,
       nombre: nombre,
       apellidos: apellidos,
       pais: selectedpais,
@@ -161,16 +132,11 @@ function FormularioAñadir() {
       civil: selectedcivil,
       telefono: telefono,
       correo: correo,
-      l_naci: l_naci,
-      f_naci: f_naci,
-      tipo_movi: selectedtransp,
-      tiempo: tiempo,
-      distancia: distancia,
     })
       .then(function (response) {
-        listaAlumnos();
+        listaProfesor();
         // console.log("entro en then: ", response);
-        alert("Alumno Actualizado");
+        alert("Profesor Actualizado");
         clean();
       })
       .catch(function (error) {
@@ -179,13 +145,13 @@ function FormularioAñadir() {
       });
   };
 
-  //eliminar alumnos
-  const deleteAlumno = (idAlumno) => {
-    Axios.delete(`http://localhost:3000/deleteAlumno/${idAlumno}`)
+  //eliminar profesores
+  const edeleteProfe = (idProfesores) => {
+    Axios.delete(`http://localhost:3000/deleteProfe/${idProfesores}`)
       .then(function (response) {
-        listaAlumnos();
+        listaProfesor();
         // console.log("entro en then: ", response);
-        alert("Alumno Eliminado");
+        alert("Profesor Eliminado");
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
@@ -194,7 +160,7 @@ function FormularioAñadir() {
   };
 
   //rellenar el formulario al presionar editar
-  const editalumn = (valor) => {
+  const editaProfe = (valor) => {
     setEdit(true);
     //console.log(valor);
     setNombre(valor.Nombre);
@@ -205,12 +171,7 @@ function FormularioAñadir() {
     setSelectedcivil(valor.Estado_civil_idEstado_civil);
     setTelefono(valor.Numero_telefono);
     setCorreo(valor.Correo);
-    setL_naci(valor.Lugar_nacimiento);
-    setF_naci(valor.Fecha_nacimiento);
-    setSelectedtransp(valor.Movilidad_idMovilidad);
-    setDistancia(valor.distancia);
-    setTiempo(valor.tiempo);
-    setIdal(valor.idAlumnos);
+    setIdal(valor.idProfesores);
     //console.log(idAl);
   };
   //limpiar
@@ -225,12 +186,6 @@ function FormularioAñadir() {
     setSelectedcivil(1);
     setTelefono("");
     setCorreo("");
-    setL_naci("");
-    setF_naci();
-    setSelectedtransp(1);
-    setDistancia("");
-    setTiempo("");
-    setIdal("");
     //console.log(idAl);
   };
 
@@ -255,10 +210,10 @@ function FormularioAñadir() {
         <div className="d-flex justify-content-center align-items-center">
           <Card>
             <Card.Header className="text-center" as="h3">
-              Añadir Alumnos
+              Añadir Profesores
             </Card.Header>
             <Card.Body>
-              <Form ref={formRef} onSubmit={addAlumno}>
+              <Form ref={formRef} onSubmit={addProfesor}>
                 <Row className="mb-3">
                   <Form.Group as={Col} md="6" controlId="nombres">
                     <Form.Label>Nombres*</Form.Label>
@@ -377,76 +332,6 @@ function FormularioAñadir() {
                     />
                   </Form.Group>
                 </Row>
-                <Row className="mb-3">
-                  <Form.Group as={Col} md="8" controlId="lnacimiento">
-                    <Form.Label>Lugar de Nacimiento*</Form.Label>
-                    <Form.Control
-                      required
-                      pattern="^[A-Za-zÁáÉéÍíÓóÚúÜüÑñ ]*$"
-                      onChange={(event) => {
-                        setL_naci(event.target.value);
-                      }}
-                      type="text"
-                      placeholder="Ingrese lugar de nacimiento"
-                      value={l_naci}
-                      maxLength="45"
-                    />
-                  </Form.Group>
-                  <Form.Group as={Col} md="4" controlId="fnacimiento">
-                    <Form.Label>Fecha de Nacimiento</Form.Label>
-                    <Form.Control
-                      required
-                      onChange={(event) => {
-                        setF_naci(event.target.value);
-                      }}
-                      type="date"
-                      value={f_naci || ""}
-                    />
-                  </Form.Group>
-                </Row>
-                <Row className="mb-3">
-                  <Form.Group as={Col} md="4" controlId="tiempo">
-                    <Form.Label>Tiempo en llegar*</Form.Label>
-                    <Form.Control
-                      required
-                      onChange={(event) => {
-                        setTiempo(event.target.value);
-                      }}
-                      type="number"
-                      placeholder="En min"
-                      value={tiempo}
-                    />
-                  </Form.Group>
-                  <Form.Group as={Col} md="4" controlId="distancia">
-                    <Form.Label>Distancia*</Form.Label>
-                    <Form.Control
-                      required
-                      onChange={(event) => {
-                        setDistancia(event.target.value);
-                      }}
-                      type="number"
-                      placeholder="En km"
-                      value={distancia}
-                    />
-                  </Form.Group>
-                  <Form.Group as={Col} md="4" controlId="tipo_movi">
-                    <Form.Label>Tipo de Movilidad</Form.Label>
-                    <Form.Select
-                      required
-                      value={selectedtransp}
-                      onChange={handle_movichange}
-                    >
-                      {tipo_movi.map((tipo_movi) => (
-                        <option
-                          key={tipo_movi.idMovilidad}
-                          value={tipo_movi.idMovilidad}
-                        >
-                          {tipo_movi.descripcion}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Row>
                 <Card.Footer className="text-muted">
                   <div className="d-grid gap-2">
                     {edit ? (
@@ -454,7 +339,7 @@ function FormularioAñadir() {
                         <Button
                           variant="warning"
                           size="lg"
-                          onClick={updateAlumno}
+                          onClick={updateProfesor}
                         >
                           Guardar Cambios
                         </Button>
@@ -485,25 +370,19 @@ function FormularioAñadir() {
               <th>Nro.Documento</th>
               <th>Correo</th>
               <th>Teléfono</th>
-              <th>Semestre</th>
-              <th>Movilidad</th>
-              <th>Nacimiento</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {alumnos.map((value, key) => {
+            {profesores.map((value, key) => {
               return (
-                <tr key={value.idAlumnos}>
-                  <td scope="row">{value.idAlumnos}</td>
+                <tr key={value.idProfesores}>
+                  <td scope="row">{value.idProfesores}</td>
                   <td>{value.Nombre}</td>
                   <td>{value.Apellido}</td>
                   <td>{value.Numero_docu}</td>
                   <td>{value.Correo}</td>
                   <td>{value.Numero_telefono}</td>
-                  <td>{value.Semestre_idSemestre}</td>
-                  <td>{value.Movilidad_idMovilidad}</td>
-                  <td>{value.Fecha_nacimiento}</td>
                   <td>
                     <ButtonGroup aria-label="botones">
                       <Button variant="primary">Info</Button>
@@ -511,7 +390,7 @@ function FormularioAñadir() {
                         variant="warning"
                         onClick={() => {
                           //console.log(value);
-                          editalumn(value);
+                          editaProfe(value);
                         }}
                       >
                         Editar
@@ -519,7 +398,7 @@ function FormularioAñadir() {
                       <Button
                         variant="danger"
                         onClick={() => {
-                          deleteAlumno(value.idAlumnos);
+                          edeleteProfe(value.idProfesores);
                         }}
                       >
                         Eliminar
@@ -536,4 +415,4 @@ function FormularioAñadir() {
   );
 }
 
-export default FormularioAñadir;
+export default ProfesoresForm;

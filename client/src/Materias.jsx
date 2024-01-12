@@ -13,8 +13,8 @@ export const Materias = () => {
   const [materia, setMateria] = useState("");
   const [carga, setCarga] = useState("");
   const [edit, setEdit] = useState(false);
-  const [data,setData]=useState([])
-  const [idMat,setIdMat]=useState("")
+  const [data, setData] = useState([]);
+  const [idMat, setIdMat] = useState("");
 
   const addMateria = () => {
     Axios.post("http://localhost:3000/createMateria", {
@@ -22,7 +22,7 @@ export const Materias = () => {
       carga: carga,
     })
       .then(function (response) {
-        alert("Materia Registrada");
+       // alert("Materia Registrada");
       })
       .catch(function (error) {
         console.log(response);
@@ -30,29 +30,28 @@ export const Materias = () => {
       });
   };
 
-    //añadir los materias al componente
-    const listaMateria = () => {
-      Axios.get("http://localhost:3000/server/materia")
-        .then((response) => {
-          setData(response.data);
-          // console.log("AL SACAR DE DB",response);
-        })
-        .catch((error) => {
-          console.error("Error al obtener materias:", error);
-        });
-    };
-  
-    useEffect(() => {
-      listaMateria();
-    }, []);
-  
+  //añadir los materias al componente
+  const listaMateria = () => {
+    Axios.get("http://localhost:3000/server/materia")
+      .then((response) => {
+        setData(response.data);
+        // console.log("AL SACAR DE DB",response);
+      })
+      .catch((error) => {
+        console.error("Error al obtener materias:", error);
+      });
+  };
+
+  useEffect(() => {
+    listaMateria();
+  }, []);
 
   const editMateria = (valor) => {
     setEdit(true);
     //console.log(valor);
     setMateria(valor.Nombre);
     setCarga(valor.Carga_horaria);
-    setIdMat(valor.idMaterias)
+    setIdMat(valor.idMaterias);
   };
   //actualizar alumnos
   const updateMaterias = () => {
@@ -65,6 +64,7 @@ export const Materias = () => {
         listaMateria();
         // console.log("entro en then: ", response);
         alert("Materia Actualizada");
+        clean();
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
@@ -72,15 +72,25 @@ export const Materias = () => {
       });
   };
 
+  const deleteMaterias = (idMaterias) => {
+    Axios.delete(`http://localhost:3000/deleteMateria/${idMaterias}`)
+      .then(function (response) {
+        listaMateria();
+        // console.log("entro en then: ", response);
+        alert("Materia Eliminada");
+      })
+      .catch(function (error) {
+        console.log("Error en axios: ", error);
+        alert("Hubo un error, intente de nuevo");
+      });
+  };
 
-
-
-//limpiar campos
-  const clean=()=>{
-    setEdit(false)
-    setMateria("")
-    setCarga("")
-  }
+  //limpiar campos
+  const clean = () => {
+    setEdit(false);
+    setMateria("");
+    setCarga("");
+  };
 
   return (
     <>
@@ -104,6 +114,7 @@ export const Materias = () => {
                       type="text"
                       placeholder="Nombre"
                       value={materia}
+                      max="20"
                     />
                   </Form.Group>
                   <Form.Group as={Col} md="6" controlId="cargah">
@@ -116,14 +127,19 @@ export const Materias = () => {
                       type="number"
                       placeholder="En horas"
                       value={carga}
+                      max="10"
                     />
                   </Form.Group>
                 </Row>
                 <Card.Footer className="text-muted">
                   <div className="d-grid gap-2">
                     {edit ? (
-                      <ButtonGroup aria-label="Basic example">
-                        <Button variant="warning" size="lg" onClick={updateMaterias}>
+                      <ButtonGroup aria-label="botones">
+                        <Button
+                          variant="warning"
+                          size="lg"
+                          onClick={updateMaterias}
+                        >
                           Guardar Cambios
                         </Button>
                         <Button variant="danger" size="lg" onClick={clean}>
@@ -174,8 +190,8 @@ export const Materias = () => {
                       <Button
                         variant="danger"
                         onClick={() => {
-                          deleteAlumno(value.idAlumnos);
-                        }} 
+                          deleteMaterias(value.idMaterias);
+                        }}
                       >
                         Eliminar
                       </Button>

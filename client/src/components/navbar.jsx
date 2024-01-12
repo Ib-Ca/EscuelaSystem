@@ -24,35 +24,25 @@ export default function NavbarDefault() {
         <Navbar.Toggle />
         <NavbarCollapse>
           <Nav className="me-auto">
-            <Button className="ml-auto" variant="primary" onClick={handleShow}>
-              <i className="bi bi-window-sidebar" style={buttonIconStyle}></i>
-              Navegacion
-            </Button>
-            <Offcanvas show={show} onHide={handleClose}>
-              <Offcanvas.Header closeButton>
-                <Offcanvas.Title>PÁGINAS</Offcanvas.Title>
-              </Offcanvas.Header>
-              <Offcanvas.Body>
-                <DropdownButton id="admin" title="ADMINISTRADORES">
-                  <Dropdown.Item href="/alumnoAdd">Añadir Alumno</Dropdown.Item>
-                  <Dropdown.Item href="/materiaAdd">Añadir Materia</Dropdown.Item>
-                  <Dropdown.Item href="">Placeholder3</Dropdown.Item>
-                </DropdownButton>
-                <DropdownButton id="admin" title="DOCENTES">
-                  <Dropdown.Item href="">Placeholder1</Dropdown.Item>
-                  <Dropdown.Item href="">Placeholder2</Dropdown.Item>
-                  <Dropdown.Item href="">Placeholder3</Dropdown.Item>
-                </DropdownButton>
-                <DropdownButton id="admin" title="ALUMNOS">
-                  <Dropdown.Item href="">Placeholder1</Dropdown.Item>
-                  <Dropdown.Item href="">Placeholder2</Dropdown.Item>
-                  <Dropdown.Item href="">Placeholder3</Dropdown.Item>
-                </DropdownButton>
-              </Offcanvas.Body>
-            </Offcanvas>
+            <NavDropdown title="ADMINISTRACIÓN" id="admin">
+              <NavDropdown.Item href="/alumnoAdd">Alumnos</NavDropdown.Item>
+              <NavDropdown.Item href="/materiaAdd">Materias</NavDropdown.Item>
+              <NavDropdown.Item href="/profesorAdd">Profesores</NavDropdown.Item>
+              <NavDropdown.Item href="/semestreCreate">Semestres</NavDropdown.Item>
+            </NavDropdown>
+            <NavDropdown title="DOCENTES" id="doc">
+              <NavDropdown.Item href="">Placeholder1</NavDropdown.Item>
+              <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
+              <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
+            </NavDropdown>
+            <NavDropdown title="ALUMNOS" id="alumnos">
+              <NavDropdown.Item href="">Placeholder1</NavDropdown.Item>
+              <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
+              <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
+            </NavDropdown>
           </Nav>
           <Nav>
-            <NavDropdown title="Usuario" id="usuario_nav">
+            <NavDropdown title="USUARIO" id="usuario_nav">
               <NavDropdown.Item href="">Info</NavDropdown.Item>
               <NavDropdown.Item href="">Cerrar Sesión</NavDropdown.Item>
             </NavDropdown>

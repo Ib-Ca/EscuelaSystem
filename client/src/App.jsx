@@ -492,10 +492,10 @@ function FormularioAñadir() {
             </tr>
           </thead>
           <tbody>
-            {alumnos.map((value, key) => {
+            {alumnos.map((value, idx) => {
               return (
                 <tr key={value.idAlumnos}>
-                  <td scope="row">{value.idAlumnos}</td>
+                  <td scope="row">{idx}</td>
                   <td>{value.Nombre}</td>
                   <td>{value.Apellido}</td>
                   <td>{value.Numero_docu}</td>

@@ -776,6 +776,122 @@ app.get("/editSemestre/:Nombre", (req, res) => {
   });
 });
 
+//edicion de materia y profe en semestre
+app.put("/completeEditSemestre", (req, res) => {
+  const updatedInfo = req.body.updatedInfo;
+  const queryPromises = [];
+  updatedInfo.forEach((data) => {
+    const queryPromise = new Promise((resolve, reject) => {
+      const updateQuery = `
+        UPDATE semestre
+        SET
+          Materias_idMaterias = ${data.Materias_idMaterias},
+          Profesores_idProfesores = ${data.Profesores_idProfesores}
+        WHERE idSemestre = ${data.idSemestre};
+      `;
+      db.query(updateQuery, (err, results) => {
+        if (err) {
+          console.error("Error al ejecutar la consulta:", err);
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    queryPromises.push(queryPromise);
+  });
+  Promise.all(queryPromises)
+    .then(() => {
+      res.status(200).json({ message: "Cambios guardados con éxito" });
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error al ejecutar la consulta" });
+    });
+});
+
+//insertar el semestre y seccion correspondiente a alumno
+app.put("/inputSemestreAlumno", (req, res) => {
+  const { alumnosSeleccionados } = req.body;
+  const semestreNombre = req.body.semestreSeleccionado;
+  const seccionNombre = req.body.seccionSeleccionada;
+  //id secccionn
+  const seccionQuery = `
+    SELECT idSeccion
+    FROM seccion
+    WHERE descripcion = '${seccionNombre}';
+  `;
+  db.query(seccionQuery, (err, seccionResults) => {
+    if (err) {
+      console.error("Error al obtener la ID de la sección:", err);
+      return res
+        .status(500)
+        .json({ error: "Error al actualizar los registros" });
+    }
+    const seccionId = seccionResults[0].idSeccion;
+    //id semestre
+    const semestreQuery = `
+      SELECT idSemestre
+      FROM semestre
+      WHERE Nombre = '${semestreNombre}' AND Seccion_idSeccion = ${seccionId};
+    `;
+    db.query(semestreQuery, (err, semestreResults) => {
+      if (err) {
+        console.error("Error al obtener la ID del semestre:", err);
+        return res
+          .status(500)
+          .json({ error: "Error al actualizar los registros" });
+      }
+      const semestreId = semestreResults[0].idSemestre;
+      const updateQueries = alumnosSeleccionados.map((alumno) => {
+        return `
+          UPDATE alumnos
+          SET Semestre_idSemestre = ${semestreId},
+              Seccion = '${seccionNombre}'
+          WHERE idAlumnos = ${alumno.idAlumnos};
+        `;
+      });
+      db.beginTransaction((err) => {
+        if (err) {
+          console.error("Error al iniciar la transacción:", err);
+          return res
+            .status(500)
+            .json({ error: "Error al actualizar los registros" });
+        }
+        updateQueries.forEach((query) => {
+          db.query(query, (err, results) => {
+            if (err) {
+              return db.rollback(() => {
+                console.error("Error al ejecutar la consulta:", err);
+                res
+                  .status(500)
+                  .json({ error: "Error al actualizar los registros" });
+              });
+            }
+          });
+        });
+        //coooommmmmmmmiiiiiiit AAAAAAAAAAAAAAAAAAAAAAAAA
+        db.commit((err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error("Error al hacer commit de la transacción:", err);
+              res
+                .status(500)
+                .json({ error: "Error al actualizar los registros" });
+            });
+          }
+          console.log("Registros actualizados con éxito");
+          res
+            .status(200)
+            .json({
+              success: true,
+              message: "Registros actualizados con éxito",
+            });
+        });
+      });
+    });
+  });
+});
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

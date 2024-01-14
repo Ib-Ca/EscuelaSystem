@@ -880,15 +880,32 @@ app.put("/inputSemestreAlumno", (req, res) => {
             });
           }
           console.log("Registros actualizados con éxito");
-          res
-            .status(200)
-            .json({
-              success: true,
-              message: "Registros actualizados con éxito",
-            });
+          res.status(200).json({
+            success: true,
+            message: "Registros actualizados con éxito",
+          });
         });
       });
     });
+  });
+});
+
+//quitar asignacion de semestre y seccion en el alumno
+app.put("/unassignAlumno", (req, res) => {
+  const idAlumno = req.body.idAlumno;
+  const sqlQuery = `
+    UPDATE alumnos
+    SET Semestre_idSemestre = NULL, Seccion = NULL
+    WHERE idAlumnos = ?;
+  `;
+  db.query(sqlQuery, [idAlumno], (err, result) => {
+    if (err) {
+      console.error("Error al actualizar datos del alumno:", err);
+      res.status(500).json({ success: false, error: "Error al actualizar datos del alumno" });
+    } else {
+      console.log("Datos del alumno actualizados correctamente");
+      res.status(200).json({ success: true, message: "Datos del alumno actualizados correctamente" });
+    }
   });
 });
 

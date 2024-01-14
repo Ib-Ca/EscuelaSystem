@@ -18,6 +18,7 @@ const EditarSemestre = () => {
   const [showModal3, setShowModal3] = useState(false); //ver asign
   const [modalOpened, setModalOpened] = useState(false);
   const [modalId, setModalId] = useState(null);
+  const [modalTitle, setModalTitle] = useState("");
   const openModal1 = () => {
     setShowModal1(true);
     setModalOpened(true);
@@ -43,7 +44,7 @@ const EditarSemestre = () => {
     setModalId(null);
     setInfo([]);
   };
-  const openModal3 = () => {
+  const openModal3 = (value) => {
     setShowModal3(true);
     setModalOpened(true);
     setModalId(3);
@@ -53,6 +54,7 @@ const EditarSemestre = () => {
     setModalOpened(false);
     setModalId(null);
     setInfo([]);
+    setModalTitle("");
   };
   /////////////////////////////////////////
   const [semestre, setSemestre] = useState([]);
@@ -149,7 +151,7 @@ const EditarSemestre = () => {
       openModal1();
     }
   };
-//cambiar materia en edit
+  //cambiar materia en edit
   const handleSelectChangeMateria = (e, index) => {
     const newValue = e.target.value;
     setSelectedMateriasArray((prevArray) =>
@@ -161,7 +163,7 @@ const EditarSemestre = () => {
       )
     );
   };
-//cambiar prof en edit
+  //cambiar prof en edit
   const handleSelectProfesorChange = (e, index) => {
     const newValue = e.target.value;
     setSelectedProfesor((prevArray) =>
@@ -173,7 +175,7 @@ const EditarSemestre = () => {
       )
     );
   };
-//guardar cambios en edit (modal1)
+  //guardar cambios en edit (modal1)
   const handleSaveChanges1 = () => {
     const updatedInfo = info.map((semestreData) => ({
       idSemestre: semestreData.idSemestre,
@@ -196,7 +198,7 @@ const EditarSemestre = () => {
     closeModal1();
     window.location.reload(false);
   };
-//asignar alumno (modal2)
+  //asignar alumno (modal2)
   const handleAsignAlumn = (value) => {
     const semestreEncontrado = semestre.filter(
       (sem) => sem.SeccionDescripcion === value
@@ -211,34 +213,44 @@ const EditarSemestre = () => {
       openModal2();
     }
   };
-  //guardar cambios modal2
-  const handleSaveChanges2 = () => {
-    const alumnosSeleccionados = alumnos.filter(
-      (alumno, idx) => options[idx] === 1
-    );
-    Axios.put("http://localhost:3000/inputSemestreAlumno", {
-      alumnosSeleccionados: alumnosSeleccionados,
-      semestreSeleccionado: info[0].Nombre,
-      seccionSeleccionada: info[0].SeccionDescripcion,
-    })
-      .then(function (response) {
-        //console.log("Éxito al seleccionar alumnos:", response);
-        setAlumnosAsignados([...alumnosAsignados, ...alumnosSeleccionados]);
-        localStorage.setItem(
-          "alumnosAsignados",
-          JSON.stringify([...alumnosAsignados, ...alumnosSeleccionados])
-        );
-        const nuevosAlumnos = alumnos.filter(
-          (alumno, idx) => options[idx] !== 1
-        );
-        setAlumnos(nuevosAlumnos);
-      })
-      .catch(function (error) {
-        console.error("Error al seleccionar alumnos:", error);
+  // Guardar cambios modal2
+  const handleSaveChanges2 = async () => {
+    try {
+      const response = await Axios.put(
+        "http://localhost:3000/inputSemestreAlumno",
+        {
+          alumnosSeleccionados: alumnosSeleccionados,
+          semestreSeleccionado: info[0].Nombre,
+          seccionSeleccionada: info[0].SeccionDescripcion,
+        }
+      );
+      console.log("Éxito al seleccionar alumnos:", response);
+      // Actualizar localmente solo después de una respuesta exitosa del servidor
+      setAlumnosAsignados((prevAsignados) => {
+        // Filtrar duplicados antes de concatenar
+        const nuevosAsignados = [
+          ...prevAsignados,
+          ...alumnosSeleccionados.filter(
+            (nuevoAsignado) =>
+              !prevAsignados.some((prev) => prev.idAlumnos === nuevoAsignado.idAlumnos)
+          ),
+        ];
+        // Actualizar localmente solo después de una respuesta exitosa del servidor
+        localStorage.setItem("alumnosAsignados", JSON.stringify(nuevosAsignados));
+        return nuevosAsignados;
       });
-    closeModal2();
+      const nuevosAlumnos = alumnos.filter((_, idx) => options[idx] !== 1);
+      setAlumnos(nuevosAlumnos);
+      closeModal2();
+    } catch (error) {
+      console.error("Error al seleccionar alumnos:", error);
+    }
+    console.log("seleccionado: ", alumnosSeleccionados);
+    console.log("alumnos: ", alumnos);
   };
-//filtro para no mostrar alumnos
+  
+
+  //filtro para no mostrar alumnos
   const alumnosNoAsignados = alumnos.filter(
     (alumno) =>
       !alumnosAsignados.find(
@@ -248,6 +260,9 @@ const EditarSemestre = () => {
           asignado.Seccion
       )
   );
+  console.log("alumnosAsignados: ", alumnosAsignados);
+  console.log("alumnosNoAsignados: ", alumnosNoAsignados);
+
   //no mostrar alumnos ya asignados
   useEffect(() => {
     const storedAlumnosAsignados = localStorage.getItem("alumnosAsignados");
@@ -255,16 +270,50 @@ const EditarSemestre = () => {
       setAlumnosAsignados(JSON.parse(storedAlumnosAsignados));
     }
   }, []);
-//radios de modal2
+
+
+  //radios de modal2
   const handleOptions = (val, idx) => {
     const newOptions = [...options];
     newOptions[idx] = val;
     setOptions(newOptions);
   };
-
-  const handleVerAlumn = () => {
-
+  //ver alumnos correspondientes de la seccion
+  const handleVerAlumn = (value) => {
+    const alumnosFiltrados = alumnos.filter(
+      (alumno) => alumno.Seccion === value
+    );
+    if (alumnosFiltrados.length > 0) {
+      const alumnosComoObjetos = alumnosFiltrados.map((alumno) => {
+        const alumnoObjeto = {};
+        Object.keys(alumno).forEach((propiedad) => {
+          alumnoObjeto[propiedad] = alumno[propiedad];
+        });
+        return alumnoObjeto;
+      });
+      setInfo(alumnosComoObjetos);
+    }
     openModal3();
+    setModalTitle(value);
+  };
+
+  //eliminar asignacion de alumno
+  const handleDeleteAlumnoAsign = (idAlumno) => {
+    Axios.put("http://localhost:3000/unassignAlumno", {
+      idAlumno: idAlumno,
+    })
+      .then(function (response) {
+        console.log(
+          "Se ha quitado la asignacion del alumno con id: ",
+          idAlumno
+        );
+        setInfo((prevInfo) =>
+          prevInfo.filter((alumno) => alumno.idAlumnos !== idAlumno)
+        );
+      })
+      .catch(function (error) {
+        console.error("Error al desasignar alumno:", error);
+      });
   };
 
   const handleDelete = () => {
@@ -275,7 +324,7 @@ const EditarSemestre = () => {
   //console.log("Semestres ", semestre);
   //console.log("Seccion unica ", seccionUnica);
   //console.log(materias);
-  //console.log("info: ", info);
+  console.log("info: ", info);
   //console.log("mat array: ", selectedMateriasArray);
   //console.log("lista alumnos: ", alumnos);
   //console.log("NO ASIGNADOS: ", alumnosNoAsignados);
@@ -316,7 +365,12 @@ const EditarSemestre = () => {
                       >
                         Asignar Alumnos
                       </Button>
-                      <Button variant="info" onClick={handleVerAlumn}>
+                      <Button
+                        variant="info"
+                        onClick={() => {
+                          handleVerAlumn(item);
+                        }}
+                      >
                         Ver Alumnos
                       </Button>
                       <Button variant="danger" onClick={handleDelete}>
@@ -406,7 +460,7 @@ const EditarSemestre = () => {
         <Modal.Header closeButton>
           <Modal.Title className="text-center">
             {info.length > 0 &&
-              `Asignación de Alumnos: Sección: ${info[0].SeccionDescripcion}`}
+              `Asignación de Alumnos, Sección: ${info[0].SeccionDescripcion}`}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -471,12 +525,54 @@ const EditarSemestre = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showModal3} onHide={closeModal3}>
+      <Modal size="lg" show={showModal3} onHide={closeModal3}>
         <Modal.Header closeButton>
-          <Modal.Title>{info.length > 0 &&
-              `Asignación de Alumnos: Sección: ${info[0].SeccionDescripcion}`}</Modal.Title>
+          <Modal.Title>Sección: {modalTitle}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Modal 3 body content</Modal.Body>
+        <Modal.Body>
+          <Table bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Correo</th>
+                <th>Cédula</th>
+                <th>Telefono</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {info.map((item, idx) => {
+                return (
+                  <tr key={idx}>
+                    <td>{idx}</td>
+                    <td>{item.Nombre}</td>
+                    <td>{item.Apellido}</td>
+                    <td>{item.Correo}</td>
+                    <td>{item.Numero_docu}</td>
+                    <td>{item.Numero_telefono}</td>
+                    <td>
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          handleDeleteAlumnoAsign(item.idAlumnos);
+                        }}
+                      >
+                        Eliminar
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeModal3}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   );

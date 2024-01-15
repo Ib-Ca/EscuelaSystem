@@ -151,11 +151,10 @@ function ProfesoresForm() {
       .then(function (response) {
         listaProfesor();
         // console.log("entro en then: ", response);
-        alert("Profesor Eliminado");
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
-        alert("Hubo un error, intente de nuevor");
+        alert("El profesor esta asignado a una o varias materias, no puede ser eliminado.");
       });
   };
 
@@ -374,10 +373,10 @@ function ProfesoresForm() {
             </tr>
           </thead>
           <tbody>
-            {profesores.map((value, key) => {
+            {profesores.map((value, idx) => {
               return (
                 <tr key={value.idProfesores}>
-                  <td scope="row">{value.idProfesores}</td>
+                  <td scope="row">{idx}</td>
                   <td>{value.Nombre}</td>
                   <td>{value.Apellido}</td>
                   <td>{value.Numero_docu}</td>

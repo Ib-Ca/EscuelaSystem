@@ -85,6 +85,14 @@ export const Materias = () => {
       });
   };
 
+
+  const handleInputCarga = (event) => {
+    const inputValue = event.target.value;
+    if (/^\d{0,10}$/.test(inputValue)) {
+      setCarga(inputValue);
+    }
+  };
+
   //limpiar campos
   const clean = () => {
     setEdit(false);
@@ -114,20 +122,18 @@ export const Materias = () => {
                       type="text"
                       placeholder="Nombre"
                       value={materia}
-                      max="20"
+                      maxLength="20"
                     />
                   </Form.Group>
                   <Form.Group as={Col} md="6" controlId="cargah">
                     <Form.Label>Carga Horaria*</Form.Label>
                     <Form.Control
                       required
-                      onChange={(event) => {
-                        setCarga(event.target.value);
-                      }}
+                      onChange={handleInputCarga}
                       type="number"
                       placeholder="En horas"
                       value={carga}
-                      max="10"
+                      
                     />
                   </Form.Group>
                 </Row>
@@ -170,10 +176,10 @@ export const Materias = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((value, key) => {
+            {data.map((value, idx) => {
               return (
                 <tr key={value.idMaterias}>
-                  <td scope="row">{value.idMaterias}</td>
+                  <td scope="row">{idx}</td>
                   <td>{value.Nombre}</td>
                   <td>{value.Carga_horaria}</td>
                   <td>

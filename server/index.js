@@ -782,43 +782,92 @@ app.put("/completeEditSemestre", (req, res) => {
   const queryPromises = [];
   updatedInfo.forEach((data) => {
     const queryPromise = new Promise((resolve, reject) => {
-      const updateQuery = `
-        UPDATE semestre
-        SET
-          Materias_idMaterias = ${data.Materias_idMaterias},
-          Profesores_idProfesores = ${data.Profesores_idProfesores}
-        WHERE idSemestre = ${data.idSemestre};
-      `;
-      db.query(updateQuery, (err, results) => {
-        if (err) {
-          console.error("Error al ejecutar la consulta:", err);
-          reject(err);
-        } else {
-          resolve(results);
-        }
-      });
+      if (data.idSemestre) {
+        //si hay idSemestre es update
+        const updateQuery = `
+          UPDATE semestre
+          SET
+            Materias_idMaterias = ${data.Materias_idMaterias},
+            Profesores_idProfesores = ${data.Profesores_idProfesores}
+          WHERE idSemestre = ${data.idSemestre};
+        `;
+        db.query(updateQuery, (err, results) => {
+          if (err) {
+            console.error("Error al ejecutar la consulta de actualización:", err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      } else {
+        //no hay idSemestre es o add o delete
+        //check si existe materia y profesor
+        const checkExistingQuery = `
+          SELECT * FROM semestre
+          WHERE Seccion_idSeccion = (SELECT idSeccion FROM seccion WHERE descripcion = '${data.SeccionDescripcion}')
+          AND Materias_idMaterias = ${data.Materias_idMaterias}
+          AND Profesores_idProfesores = ${data.Profesores_idProfesores};
+        `;
+        db.query(checkExistingQuery, (err, existingResults) => {
+          if (err) {
+            console.error("Error al verificar existencia:", err);
+            reject(err);
+          } else {
+            if (existingResults.length > 0) {
+              //hay Sección, Materia y Profesor
+              console.error("La combinación de Sección, Materia y Profesor ya existe en la base de datos.");
+              reject(new Error("La combinación de Sección, Materia y Profesor ya existe en la base de datos."));
+            } else {
+              //no hay, se guarda
+              const insertQuery = `
+                INSERT INTO semestre (Nombre, Seccion_idSeccion, Materias_idMaterias, Profesores_idProfesores)
+                VALUES ('${data.Nombre}', (SELECT idSeccion FROM seccion WHERE descripcion = '${data.SeccionDescripcion}'), ${data.Materias_idMaterias}, ${data.Profesores_idProfesores});
+              `;
+              db.query(insertQuery, (err, results) => {
+                if (err) {
+                  console.error("Error al ejecutar la consulta de adición:", err);
+                  reject(err);
+                } else {
+                  resolve(results);
+                }
+              });
+            }
+          }
+        });
+      }
     });
     queryPromises.push(queryPromise);
   });
-  Promise.all(queryPromises)
-    .then(() => {
-      res.status(200).json({ message: "Cambios guardados con éxito" });
-    })
-    .catch((error) => {
+
+  //eliminar filas con el botoncito eliminar
+  const deleteQuery = `
+    DELETE FROM semestre
+    WHERE idSemestre NOT IN (${updatedInfo.filter(data => data.idSemestre).map(data => data.idSemestre).join(',')});
+  `;
+  db.query(deleteQuery, (err, results) => {
+    if (err) {
+      console.error("Error al ejecutar la consulta de eliminación:", err);
       res.status(500).json({ error: "Error al ejecutar la consulta" });
-    });
+    } else {
+      Promise.all(queryPromises)
+        .then(() => {
+          res.status(200).json({ message: "Cambios guardados con éxito" });
+        })
+        .catch((error) => {
+          res.status(500).json({ error: "Error al ejecutar la consulta" });
+        });
+    }
+  });
 });
 
 //insertar el semestre y seccion correspondiente a alumno
 app.put("/inputSemestreAlumno", (req, res) => {
-  const { alumnosSeleccionados } = req.body;
-  const semestreNombre = req.body.semestreSeleccionado;
-  const seccionNombre = req.body.seccionSeleccionada;
-  //id secccionn
+  const { idsAlumnos, semestre, seccion } = req.body;
+  //id seccion
   const seccionQuery = `
     SELECT idSeccion
     FROM seccion
-    WHERE descripcion = '${seccionNombre}';
+    WHERE descripcion = '${seccion}';
   `;
   db.query(seccionQuery, (err, seccionResults) => {
     if (err) {
@@ -832,7 +881,7 @@ app.put("/inputSemestreAlumno", (req, res) => {
     const semestreQuery = `
       SELECT idSemestre
       FROM semestre
-      WHERE Nombre = '${semestreNombre}' AND Seccion_idSeccion = ${seccionId};
+      WHERE Nombre = '${semestre}' AND Seccion_idSeccion = ${seccionId};
     `;
     db.query(semestreQuery, (err, semestreResults) => {
       if (err) {
@@ -842,12 +891,13 @@ app.put("/inputSemestreAlumno", (req, res) => {
           .json({ error: "Error al actualizar los registros" });
       }
       const semestreId = semestreResults[0].idSemestre;
-      const updateQueries = alumnosSeleccionados.map((alumno) => {
+      //actualizar alumno
+      const updateQueries = idsAlumnos.map((idAlumno) => {
         return `
           UPDATE alumnos
           SET Semestre_idSemestre = ${semestreId},
-              Seccion = '${seccionNombre}'
-          WHERE idAlumnos = ${alumno.idAlumnos};
+              Seccion = '${seccion}'
+          WHERE idAlumnos = ${idAlumno};
         `;
       });
       db.beginTransaction((err) => {
@@ -858,7 +908,7 @@ app.put("/inputSemestreAlumno", (req, res) => {
             .json({ error: "Error al actualizar los registros" });
         }
         updateQueries.forEach((query) => {
-          db.query(query, (err, results) => {
+          db.query(query, (err) => {
             if (err) {
               return db.rollback(() => {
                 console.error("Error al ejecutar la consulta:", err);
@@ -869,7 +919,6 @@ app.put("/inputSemestreAlumno", (req, res) => {
             }
           });
         });
-        //coooommmmmmmmiiiiiiit AAAAAAAAAAAAAAAAAAAAAAAAA
         db.commit((err) => {
           if (err) {
             return db.rollback(() => {
@@ -901,11 +950,132 @@ app.put("/unassignAlumno", (req, res) => {
   db.query(sqlQuery, [idAlumno], (err, result) => {
     if (err) {
       console.error("Error al actualizar datos del alumno:", err);
-      res.status(500).json({ success: false, error: "Error al actualizar datos del alumno" });
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: "Error al actualizar datos del alumno",
+        });
     } else {
       console.log("Datos del alumno actualizados correctamente");
-      res.status(200).json({ success: true, message: "Datos del alumno actualizados correctamente" });
+      res
+        .status(200)
+        .json({
+          success: true,
+          message: "Datos del alumno actualizados correctamente",
+        });
     }
+  });
+});
+
+//eliminar seccion en semestre
+app.delete("/deleteSeccionSemestre", (req, res) => {
+  const seccionNombre = req.body.seccionNombre;
+  //idsección
+  const obtenerIdSeccionQuery = `
+    SELECT idSeccion
+    FROM seccion
+    WHERE descripcion = ?;
+  `;
+  db.query(obtenerIdSeccionQuery, [seccionNombre], (err, results) => {
+    if (err) {
+      console.error("Error al obtener la ID de la sección:", err);
+      return res.status(500).json({ error: "Error al eliminar semestres" });
+    }
+    if (results.length === 0) {
+      console.error("No se encontró la sección con el nombre proporcionado");
+      return res.status(404).json({ error: "Sección no encontrada" });
+    }
+    const idSeccion = results[0].idSeccion;
+    //delete
+    const eliminarSemestresQuery = `
+      DELETE FROM semestre
+      WHERE Seccion_idSeccion = ?;
+    `;
+    db.query(eliminarSemestresQuery, [idSeccion], (err, deleteResults) => {
+      if (err) {
+        console.error("Error al eliminar semestres:", err);
+        return res.status(500).json({ error: "Error al eliminar semestres" });
+      }
+      console.log(`Se eliminaron ${deleteResults.affectedRows} semestres con la ID de sección ${idSeccion}`);
+      res.status(200).json({ success: true, message: "Semestres eliminados con éxito" });
+    });
+  });
+});
+
+//obtener TODOS los datos de alumno
+app.get("/server/allAlumno", (req, res) => {
+  const consulta = `
+    SELECT 
+      a.idAlumnos,
+      a.Nombre,
+      a.Apellido,
+      a.Numero_docu,
+      a.Numero_telefono,
+      a.Lugar_nacimiento,
+      a.Fecha_nacimiento,
+      a.Correo,
+      a.Estado_civil_idEstado_civil,
+      ec.Descripcion AS EstadoCivilDescripcion,
+      a.Documento_idDocumento,
+      d.Tipo_docu AS TipoDocumento,
+      a.Nacionalidad_idNacionalidad,
+      n.Descripcion AS NacionalidadDescripcion,
+      a.Semestre_idSemestre,
+      s.Nombre AS SemestreNombre,
+      s.Seccion_idSeccion,
+      secc.descripcion AS SeccionDescripcion,
+      a.Estado_alumno_idEstado_alumno,
+      ea.descripcion AS EstadoAlumnoDescripcion,
+      a.Movilidad_idMovilidad,
+      m.descripcion AS MovilidadDescripcion,
+      a.tiempo,
+      a.distancia,
+      a.Seccion
+    FROM 
+      alumnos a
+    JOIN 
+      estado_civil ec ON a.Estado_civil_idEstado_civil = ec.idEstado_civil
+    JOIN 
+      documento d ON a.Documento_idDocumento = d.idDocumento
+    JOIN 
+      nacionalidad n ON a.Nacionalidad_idNacionalidad = n.idNacionalidad
+    LEFT JOIN
+      semestre s ON a.Semestre_idSemestre = s.idSemestre
+    LEFT JOIN
+      seccion secc ON s.Seccion_idSeccion = secc.idSeccion
+    JOIN
+      estado_alumno ea ON a.Estado_alumno_idEstado_alumno = ea.idEstado_alumno
+    JOIN
+      movilidad m ON a.Movilidad_idMovilidad = m.idMovilidad;
+  `;
+  db.query(consulta, (err, result) => {
+    if (err) {
+      console.error("Error al obtener datos de alumnos:", err);
+      return res.status(500).json({ error: "Error al obtener datos de alumnos" });
+    }
+    res.status(200).json(result);
+  });
+});
+
+//eliminar semestre
+app.delete("/deleteSemestre", (req, res) => {
+  const semestreNombre = req.body.Semestre.Nombre;
+  //console.log("semestre: ", semestreNombre);
+  const deleteQuery = `
+    DELETE FROM semestre
+    WHERE Nombre = ?;
+  `;
+  db.query(deleteQuery, [semestreNombre], (err, result) => {
+    if (err) {
+      console.error("Error al eliminar semestre:", err);
+      return res.status(500).json({ error: "Error al eliminar el semestre" });
+    }
+    console.log("Semestre eliminado con éxito");
+    res.status(200).json({
+      success: true,
+      message: "Semestre eliminado con éxito",
+    });
   });
 });
 

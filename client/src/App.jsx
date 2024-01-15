@@ -135,7 +135,7 @@ function FormularioAñadir() {
   };
   //añadir los alumnos al componente
   const listaAlumnos = () => {
-    Axios.get("http://localhost:3000/server/alumnos")
+    Axios.get("http://localhost:3000/server/allAlumno")
       .then((response) => {
         setAlumnos(response.data);
         // console.log("AL SACAR DE DB",response);
@@ -144,6 +144,7 @@ function FormularioAñadir() {
         console.error("Error al obtener alumnos:", error);
       });
   };
+  console.log("alumno:", alumnos);
 
   useEffect(() => {
     listaAlumnos();
@@ -486,8 +487,8 @@ function FormularioAñadir() {
               <th>Correo</th>
               <th>Teléfono</th>
               <th>Semestre</th>
-              <th>Movilidad</th>
-              <th>Nacimiento</th>
+              <th>Sección</th>
+              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -501,9 +502,9 @@ function FormularioAñadir() {
                   <td>{value.Numero_docu}</td>
                   <td>{value.Correo}</td>
                   <td>{value.Numero_telefono}</td>
-                  <td>{value.Semestre_idSemestre}</td>
-                  <td>{value.Movilidad_idMovilidad}</td>
-                  <td>{value.Fecha_nacimiento}</td>
+                  <td>{value.SemestreNombre}</td>
+                  <td>{value.Seccion}</td>
+                  <td>{value.EstadoAlumnoDescripcion}</td>
                   <td>
                     <ButtonGroup aria-label="botones">
                       <Button variant="primary">Info</Button>

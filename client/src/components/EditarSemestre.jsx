@@ -9,6 +9,8 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 
 const EditarSemestre = () => {
   const { Nombre } = useParams();
@@ -43,6 +45,8 @@ const EditarSemestre = () => {
     setModalOpened(false);
     setModalId(null);
     setInfo([]);
+    setModalTitle("");
+    setAlumnosSubmit([]);
   };
   const openModal3 = (value) => {
     setShowModal3(true);
@@ -55,6 +59,7 @@ const EditarSemestre = () => {
     setModalId(null);
     setInfo([]);
     setModalTitle("");
+    location.reload();
   };
   /////////////////////////////////////////
   const [semestre, setSemestre] = useState([]);
@@ -65,8 +70,8 @@ const EditarSemestre = () => {
   const [selectedMateriasArray, setSelectedMateriasArray] = useState([]);
   const [info, setInfo] = useState([]);
   const [alumnos, setAlumnos] = useState([]);
-  const [alumnosAsignados, setAlumnosAsignados] = useState([]);
-  const [options, setOptions] = useState([]);
+  const [alumnosSubmit, setAlumnosSubmit] = useState([]);
+
   //fetch semestre a editar y filtrado de secciones para visaul
   useEffect(() => {
     const fetchSemestre = async () => {
@@ -127,6 +132,7 @@ const EditarSemestre = () => {
 
   //abrir edit
   const handleSeccionEdit = (value) => {
+    setModalTitle(value)
     const semestreEncontrado = semestre.filter(
       (sem) => sem.SeccionDescripcion === value
     );
@@ -181,6 +187,8 @@ const EditarSemestre = () => {
       idSemestre: semestreData.idSemestre,
       Materias_idMaterias: semestreData.Materias_idMaterias,
       Profesores_idProfesores: semestreData.Profesores_idProfesores,
+      SeccionDescripcion: semestreData.SeccionDescripcion,
+      Nombre: Nombre,
     }));
     Axios.put("http://localhost:3000/completeEditSemestre", {
       updatedInfo: updatedInfo,
@@ -198,86 +206,86 @@ const EditarSemestre = () => {
     closeModal1();
     window.location.reload(false);
   };
-  //asignar alumno (modal2)
-  const handleAsignAlumn = (value) => {
-    const semestreEncontrado = semestre.filter(
-      (sem) => sem.SeccionDescripcion === value
-    );
-    if (semestreEncontrado.length > 0) {
-      const aux = semestreEncontrado.map((semestreEncontrado) => ({
-        idSemestre: semestreEncontrado.idSemestre,
-        Nombre: semestreEncontrado.Nombre,
-        SeccionDescripcion: semestreEncontrado.SeccionDescripcion,
-      }));
-      setInfo([...aux]);
-      openModal2();
-    }
+  
+  //añadir nueva materia y profesor a la seccion
+  const handleAnadirMateria = () => {
+    const primeraMateria = materias.length > 0 ? materias[0].idMaterias : null;
+    const primerProfesor =
+      profesores.length > 0 ? profesores[0].idProfesores : null;
+    setInfo([
+      ...info,
+      {
+        Materias_idMaterias: primeraMateria,
+        Profesores_idProfesores: primerProfesor,
+        SeccionDescripcion: modalTitle
+      },
+    ]);
+    setSelectedMateriasArray([...selectedMateriasArray, primeraMateria]);
+    setSelectedProfesor([...selectedProfesor, primerProfesor]);
   };
-  // Guardar cambios modal2
-  const handleSaveChanges2 = async () => {
-    try {
-      const response = await Axios.put(
-        "http://localhost:3000/inputSemestreAlumno",
-        {
-          alumnosSeleccionados: alumnosSeleccionados,
-          semestreSeleccionado: info[0].Nombre,
-          seccionSeleccionada: info[0].SeccionDescripcion,
-        }
-      );
-      console.log("Éxito al seleccionar alumnos:", response);
-      // Actualizar localmente solo después de una respuesta exitosa del servidor
-      setAlumnosAsignados((prevAsignados) => {
-        // Filtrar duplicados antes de concatenar
-        const nuevosAsignados = [
-          ...prevAsignados,
-          ...alumnosSeleccionados.filter(
-            (nuevoAsignado) =>
-              !prevAsignados.some((prev) => prev.idAlumnos === nuevoAsignado.idAlumnos)
-          ),
-        ];
-        // Actualizar localmente solo después de una respuesta exitosa del servidor
-        localStorage.setItem("alumnosAsignados", JSON.stringify(nuevosAsignados));
-        return nuevosAsignados;
-      });
-      const nuevosAlumnos = alumnos.filter((_, idx) => options[idx] !== 1);
-      setAlumnos(nuevosAlumnos);
-      closeModal2();
-    } catch (error) {
-      console.error("Error al seleccionar alumnos:", error);
-    }
-    console.log("seleccionado: ", alumnosSeleccionados);
-    console.log("alumnos: ", alumnos);
+
+  //quitar materia y prof de fila
+  const handleEliminarFila = (index) => {
+    setInfo((prevInfo) => prevInfo.filter((item, i) => i !== index));
+    setSelectedMateriasArray((prevArray) => prevArray.filter((item, i) => i !== index));
+    setSelectedProfesor((prevArray) => prevArray.filter((item, i) => i !== index));
   };
   
 
-  //filtro para no mostrar alumnos
-  const alumnosNoAsignados = alumnos.filter(
-    (alumno) =>
-      !alumnosAsignados.find(
-        (asignado) =>
-          asignado.idAlumnos === alumno.idAlumnos &&
-          asignado.Semestre_idSemestre &&
-          asignado.Seccion
-      )
-  );
-  console.log("alumnosAsignados: ", alumnosAsignados);
-  console.log("alumnosNoAsignados: ", alumnosNoAsignados);
-
-  //no mostrar alumnos ya asignados
-  useEffect(() => {
-    const storedAlumnosAsignados = localStorage.getItem("alumnosAsignados");
-    if (storedAlumnosAsignados) {
-      setAlumnosAsignados(JSON.parse(storedAlumnosAsignados));
+  //asignar alumno (modal2)
+  const handleAsignAlumn = (value) => {
+    setModalTitle(value);
+    const alumnosSinSeccion = alumnos.filter(
+      (alumno) => alumno.Seccion === null
+    );
+    if (alumnosSinSeccion.length > 0) {
+      const alumnosSinSeccionComoObjetos = alumnosSinSeccion.map((alumno) => {
+        const alumnoObjeto = {};
+        Object.keys(alumno).forEach((propiedad) => {
+          alumnoObjeto[propiedad] = alumno[propiedad];
+        });
+        return alumnoObjeto;
+      });
+      setInfo(alumnosSinSeccionComoObjetos);
     }
-  }, []);
-
-
-  //radios de modal2
-  const handleOptions = (val, idx) => {
-    const newOptions = [...options];
-    newOptions[idx] = val;
-    setOptions(newOptions);
+    openModal2();
   };
+  //añadir a los alumnos para ser asignados
+  const handleAnadir = (index) => {
+    const alumnoSeleccionado = info[index];
+    setAlumnosSubmit((prevAlumnosSubmit) => [
+      ...prevAlumnosSubmit,
+      alumnoSeleccionado,
+    ]);
+    setInfo((prevInfo) => prevInfo.filter((_, i) => i !== index));
+  };
+  //elimnar alumno de la lista de aprobacion para ser asignado
+  const handleDeleteListita = (index) => {
+    const alumnoEliminado = alumnosSubmit[index];
+    setAlumnosSubmit((prevAlumnosSubmit) =>
+      prevAlumnosSubmit.filter((_, i) => i !== index)
+    );
+    setInfo((prevInfo) => [...prevInfo, alumnoEliminado]);
+  };
+
+  // Guardar cambios modal2
+  const handleSaveChanges2 = () => {
+    const idsAlumnosSubmit = alumnosSubmit.map((alumno) => alumno.idAlumnos);
+    Axios.put("http://localhost:3000/inputSemestreAlumno", {
+      idsAlumnos: idsAlumnosSubmit,
+      seccion: modalTitle,
+      semestre: Nombre,
+    })
+      .then(function (response) {
+        console.log("Solicitud PUT exitosa");
+        closeModal2();
+        location.reload();
+      })
+      .catch(function (error) {
+        console.error("Error al enviar la solicitud PUT:", error);
+      });
+  };
+
   //ver alumnos correspondientes de la seccion
   const handleVerAlumn = (value) => {
     const alumnosFiltrados = alumnos.filter(
@@ -315,16 +323,41 @@ const EditarSemestre = () => {
         console.error("Error al desasignar alumno:", error);
       });
   };
-
-  const handleDelete = () => {
-    alert("BOO");
+  //eliminar seccion
+  const handleDelete = (value) => {
+    console.log("Alumnos Lista: ", alumnos);
+    const seccionAsignada = alumnos.some((alumno) => alumno.Seccion === value);
+    const idAlumnosConSeccion = alumnos
+      .filter((alumno) => alumno.Seccion === value)
+      .map((alumno) => alumno.idAlumnos);
+    if (seccionAsignada) {
+      alert(
+        "No puede eliminar secciones mientras hayan alumnos asignados a la misma."
+      );
+      //console.log("ID de los alumnos con la sección asignada: ", idAlumnosConSeccion);
+    } else {
+      console.log("No hay alumnos con la sección asignada.");
+      console.log("Sección: ", value);
+      Axios.delete("http://localhost:3000/deleteSeccionSemestre", {
+        data: { seccionNombre: value },
+      })
+        .then(function (response) {
+          //console.log("FUNCIONOOO");
+          location.reload();
+        })
+        .catch(function (error) {
+          console.error("Error al eliminar seccion:", error);
+        });
+    }
   };
 
   //LOGS
+  console.log(Nombre);
   //console.log("Semestres ", semestre);
   //console.log("Seccion unica ", seccionUnica);
-  //console.log(materias);
-  console.log("info: ", info);
+  //console.log("materias: ", materias);
+  //console.log("profesores: ", profesores);
+  //console.log("info: ", info);
   //console.log("mat array: ", selectedMateriasArray);
   //console.log("lista alumnos: ", alumnos);
   //console.log("NO ASIGNADOS: ", alumnosNoAsignados);
@@ -373,7 +406,12 @@ const EditarSemestre = () => {
                       >
                         Ver Alumnos
                       </Button>
-                      <Button variant="danger" onClick={handleDelete}>
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          handleDelete(item);
+                        }}
+                      >
                         Eliminar Sección
                       </Button>
                     </ButtonGroup>
@@ -393,6 +431,9 @@ const EditarSemestre = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <Button variant="success" onClick={handleAnadirMateria}>
+            Añadir Materia
+          </Button>
           <Table bordered hover>
             <thead>
               <tr>
@@ -437,7 +478,7 @@ const EditarSemestre = () => {
                     </td>
                     <td>
                       <ButtonGroup aria-label="botones">
-                        <Button variant="danger">Eliminar</Button>
+                        <Button variant="danger"  onClick={() => handleEliminarFila(idx)}>Eliminar</Button>
                       </ButtonGroup>
                     </td>
                   </tr>
@@ -456,64 +497,85 @@ const EditarSemestre = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal size="lg" show={showModal2} onHide={closeModal2}>
+      <Modal size="xl" show={showModal2} onHide={closeModal2}>
         <Modal.Header closeButton>
           <Modal.Title className="text-center">
-            {info.length > 0 &&
-              `Asignación de Alumnos, Sección: ${info[0].SeccionDescripcion}`}
+            Asignar a Sección {modalTitle}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Table bordered hover>
-            <thead>
-              <tr>
-                <th>Asignar</th>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Nro. Documento</th>
-                <th>Correo</th>
-                <th>Sección</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alumnosNoAsignados.map((item, idx) => {
-                const groupName = `options_${idx}`; //nombre pa cada fila (pa los botones)
-                return (
-                  <tr key={idx}>
-                    <td>
-                      <ToggleButtonGroup
-                        type="radio"
-                        name={groupName}
-                        value={options[idx]}
-                        defaultValue={2}
-                        onChange={(val) => handleOptions(val, idx)}
-                      >
-                        <ToggleButton
-                          variant="outline-success"
-                          id={`asignado_${idx}`}
-                          value={1}
-                        >
-                          Sí
-                        </ToggleButton>
-                        <ToggleButton
-                          id={`noAsign_${idx}`}
-                          variant="outline-dark"
-                          value={2}
-                        >
-                          No
-                        </ToggleButton>
-                      </ToggleButtonGroup>
-                    </td>
-                    <td>{item.Nombre}</td>
-                    <td>{item.Apellido}</td>
-                    <td>{item.Numero_docu}</td>
-                    <td>{item.Correo}</td>
-                    <td>{item.Seccion}</td>
+          <Row>
+            <Col md={6}>
+              <h2>Seleccione para asignar</h2>
+              <Table bordered hover>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Documento</th>
+                    <th>Acción</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+                </thead>
+                <tbody>
+                  {info.map((item, idx) => {
+                    return (
+                      <tr key={idx}>
+                        <td>{idx}</td>
+                        <td>{item.Nombre}</td>
+                        <td>{item.Apellido}</td>
+                        <td>{item.Numero_docu}</td>
+                        <td>
+                          <Button
+                            variant="success"
+                            onClick={() => {
+                              handleAnadir(idx);
+                            }}
+                          >
+                            Asign.
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </Col>
+            <Col md={6}>
+              <h2>Confirme Asignación</h2>
+              <Table bordered hover>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Documento</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alumnosSubmit.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>{idx}</td>
+                      <td>{item.Nombre}</td>
+                      <td>{item.Apellido}</td>
+                      <td>{item.Numero_docu}</td>
+                      <td>
+                        <Button
+                          variant="danger"
+                          onClick={() => {
+                            handleDeleteListita(idx);
+                          }}
+                        >
+                          Eliminar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Col>
+          </Row>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={closeModal2}>

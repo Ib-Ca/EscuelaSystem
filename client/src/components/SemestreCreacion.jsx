@@ -23,6 +23,7 @@ const CrearSemestre = () => {
   const [selectedProfesor, setSelectedProfesor] = useState("");
   const [semestresLista, setSemestresLista] = useState([]);
   const [semestresUnicos, setSemestresUnicos] = useState([]);
+  const [alumnos, setAlumnos] = useState([]);
 
   const [materiaLista, setMateriasLista] = useState([]);
   const [profeLista, setProfeLista] = useState([]);
@@ -91,7 +92,7 @@ const CrearSemestre = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-   // console.log(materiaLista);
+    // console.log(materiaLista);
     const datosEnviar = materiaLista.map((materia, index) => ({
       nombre: nombre,
       seccion: selectedSeccion,
@@ -148,6 +149,44 @@ const CrearSemestre = () => {
       return [...filterList];
     });
   };
+
+  //alumnos
+  const fetchAlumnos = () => {
+    return Axios.get("http://localhost:3000/server/allAlumno")
+      .then((response) => {
+        setAlumnos(response.data);
+        return response.data;
+      })
+      .catch((error) => {
+        console.error("Error al obtener alumnos:", error);
+        throw error;
+      });
+  };
+  const handleDelete = (value) => {
+    console.log("semestre", value);
+    fetchAlumnos()
+      .then((alumnos) => {
+        console.log("alumnos: ", alumnos);
+        const tieneCoincidencia = alumnos.some(
+          (alumno) => alumno.SemestreNombre === value.Nombre
+        );
+        if (tieneCoincidencia) {
+          alert(
+            "No puede eliminar semestres mientras hayan alumnos asignados a la misma."
+          );
+        } else {
+          Axios.delete("http://localhost:3000/deleteSemestre", {
+            data: {Semestre: value},
+          });
+          location.reload();
+        }
+      })
+      .catch((error) => {
+        console.error("Error al obtener la lista de alumnos:", error);
+      });
+  };
+
+  console.log("alumnos: ", alumnos);
 
   const formRef = useRef(null);
   return (
@@ -275,7 +314,14 @@ const CrearSemestre = () => {
                       <Link to={`/semestreEdit/${item.Nombre}`}>
                         <Button variant="warning">Editar</Button>
                       </Link>
-                      <Button variant="danger">Eliminar</Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          handleDelete(item);
+                        }}
+                      >
+                        Eliminar
+                      </Button>
                     </ButtonGroup>
                   </td>
                 </tr>

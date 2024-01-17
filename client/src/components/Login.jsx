@@ -15,6 +15,16 @@ const Login = () => {
   let navigate = useNavigate();
   Axios.defaults.withCredentials = true;
 
+  useEffect(() => {
+    Axios.get("http://localhost:3000/testeoLogin")
+      .then((response) => {
+        if (response.data.logIn) {
+          navigate("/home");
+        }
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
   const handleLogin = () => {
     Axios.post("http://localhost:3000/server/login", {
       username: username,
@@ -34,13 +44,6 @@ const Login = () => {
   };
   
 
- /* useEffect(() => {
-    Axios.get("http://localhost:3000/server/login").then((response) => {
-      if (response.data.loggedIn == true) {
-        setLoginStatus(response.data.user[0].username);
-      }
-    });
-  }, []);*/
 
   return (
     <div className={styles.clase}>

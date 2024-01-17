@@ -4,10 +4,9 @@ import { useNavigate } from "react-router-dom";
 
 export const Inicio = () => {
   const [user, setUser] = useState("");
-
+  Axios.defaults.withCredentials = true;
   const navigate = useNavigate();
   useEffect(() => {
-    Axios.defaults.withCredentials = true;
     Axios.get("http://localhost:3000/testeoLogin")
       .then((response) => {
         if (response.data.logIn) {

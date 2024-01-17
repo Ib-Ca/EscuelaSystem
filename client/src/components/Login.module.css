@@ -1,0 +1,56 @@
+.clase{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.LoginContainer{
+    width: 500px;
+    height: 550px;
+    padding: 80px;
+    background-color: #2a2e45;
+    box-shadow: 0px 0px 20px 0px #32322c;
+}
+
+.LoginHeadline{
+    text-align: center;
+    color: white;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 600;
+}
+
+.FormLogin{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.TextInput{
+    height: 50px;
+    padding-left: 10px;
+    margin-top: 36px;
+    margin-bottom: 80px;
+    align-self: stretch;
+    font-family: "Open Sans", sans-serif;
+    border-style: none;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.7);
+}
+
+.Boton{
+    height: 60px;
+    width: 100%;
+    padding: 15px 32px;
+    display: inline-block;
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+
+    border: none;
+    border-radius: 40px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+}

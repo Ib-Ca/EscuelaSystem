@@ -2,8 +2,34 @@ const express = require("express");
 const app = express();
 const mysql = require("mysql");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(
+  session({
+    key: "userId",
+    secret: "Hx~x.uLLtxNctssF1RShbferV-LVnn",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      expires: 60 * 60 * 24 * 1000,
+    },
+  })
+);
+
 app.use(express.json());
 
 const db = mysql.createConnection({
@@ -188,9 +214,11 @@ app.post("/createAlumno", (req, res) => {
                       } else {
                         const idAlumno = result.insertId;
                         console.log("El id del alumno es: ", idAlumno);
-                        return res
-                          .status(200)
-                          .send("Alumno registrado con éxito");
+                        return res.status(200).json({
+                          message: "Alumno registrado con éxito",
+                          alumnoCreado: true,
+                          idAlumno: idAlumno,
+                        });
                       }
                       //
                     }
@@ -360,15 +388,24 @@ app.put("/updateAlumno", (req, res) => {
 //query borrar alumno
 app.delete("/deleteAlumno/:idAlumno", (req, res) => {
   const idAlumno = req.params.idAlumno;
-  const query = "DELETE FROM alumnos WHERE idAlumnos = ?";
-  db.query(query, idAlumno, (err, result) => {
-    if (err) {
-      console.error("Error al eliminar el alumno:", err);
-      return res.status(500).send("Error al eliminar el alumno");
+  //eliminar usuario primero para que no salte error por foranea
+  const deleteUsuarioQuery = "DELETE FROM usuario WHERE Alumnos_idAlumnos = ?";
+  db.query(deleteUsuarioQuery, idAlumno, (errUsuario, resultUsuario) => {
+    if (errUsuario) {
+      console.error("Error al eliminar usuario:", errUsuario);
+      return res.status(500).send("Error al eliminar usuario");
     }
-    return res
-      .status(200)
-      .send(`Alumno con ID ${idAlumno} eliminado correctamente`);
+    //delete user
+    const deleteAlumnoQuery = "DELETE FROM alumnos WHERE idAlumnos = ?";
+    db.query(deleteAlumnoQuery, idAlumno, (errAlumno, resultAlumno) => {
+      if (errAlumno) {
+        console.error("Error al eliminar el alumno:", errAlumno);
+        return res.status(500).send("Error al eliminar el alumno");
+      }
+      return res
+        .status(200)
+        .send(`Alumno con ID ${idAlumno} eliminado correctamente`);
+    });
   });
 });
 
@@ -793,7 +830,10 @@ app.put("/completeEditSemestre", (req, res) => {
         `;
         db.query(updateQuery, (err, results) => {
           if (err) {
-            console.error("Error al ejecutar la consulta de actualización:", err);
+            console.error(
+              "Error al ejecutar la consulta de actualización:",
+              err
+            );
             reject(err);
           } else {
             resolve(results);
@@ -815,8 +855,14 @@ app.put("/completeEditSemestre", (req, res) => {
           } else {
             if (existingResults.length > 0) {
               //hay Sección, Materia y Profesor
-              console.error("La combinación de Sección, Materia y Profesor ya existe en la base de datos.");
-              reject(new Error("La combinación de Sección, Materia y Profesor ya existe en la base de datos."));
+              console.error(
+                "La combinación de Sección, Materia y Profesor ya existe en la base de datos."
+              );
+              reject(
+                new Error(
+                  "La combinación de Sección, Materia y Profesor ya existe en la base de datos."
+                )
+              );
             } else {
               //no hay, se guarda
               const insertQuery = `
@@ -825,7 +871,10 @@ app.put("/completeEditSemestre", (req, res) => {
               `;
               db.query(insertQuery, (err, results) => {
                 if (err) {
-                  console.error("Error al ejecutar la consulta de adición:", err);
+                  console.error(
+                    "Error al ejecutar la consulta de adición:",
+                    err
+                  );
                   reject(err);
                 } else {
                   resolve(results);
@@ -842,7 +891,10 @@ app.put("/completeEditSemestre", (req, res) => {
   //eliminar filas con el botoncito eliminar
   const deleteQuery = `
     DELETE FROM semestre
-    WHERE idSemestre NOT IN (${updatedInfo.filter(data => data.idSemestre).map(data => data.idSemestre).join(',')});
+    WHERE idSemestre NOT IN (${updatedInfo
+      .filter((data) => data.idSemestre)
+      .map((data) => data.idSemestre)
+      .join(",")});
   `;
   db.query(deleteQuery, (err, results) => {
     if (err) {
@@ -950,20 +1002,16 @@ app.put("/unassignAlumno", (req, res) => {
   db.query(sqlQuery, [idAlumno], (err, result) => {
     if (err) {
       console.error("Error al actualizar datos del alumno:", err);
-      res
-        .status(500)
-        .json({
-          success: false,
-          error: "Error al actualizar datos del alumno",
-        });
+      res.status(500).json({
+        success: false,
+        error: "Error al actualizar datos del alumno",
+      });
     } else {
       console.log("Datos del alumno actualizados correctamente");
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Datos del alumno actualizados correctamente",
-        });
+      res.status(200).json({
+        success: true,
+        message: "Datos del alumno actualizados correctamente",
+      });
     }
   });
 });
@@ -997,8 +1045,12 @@ app.delete("/deleteSeccionSemestre", (req, res) => {
         console.error("Error al eliminar semestres:", err);
         return res.status(500).json({ error: "Error al eliminar semestres" });
       }
-      console.log(`Se eliminaron ${deleteResults.affectedRows} semestres con la ID de sección ${idSeccion}`);
-      res.status(200).json({ success: true, message: "Semestres eliminados con éxito" });
+      console.log(
+        `Se eliminaron ${deleteResults.affectedRows} semestres con la ID de sección ${idSeccion}`
+      );
+      res
+        .status(200)
+        .json({ success: true, message: "Semestres eliminados con éxito" });
     });
   });
 });
@@ -1052,7 +1104,9 @@ app.get("/server/allAlumno", (req, res) => {
   db.query(consulta, (err, result) => {
     if (err) {
       console.error("Error al obtener datos de alumnos:", err);
-      return res.status(500).json({ error: "Error al obtener datos de alumnos" });
+      return res
+        .status(500)
+        .json({ error: "Error al obtener datos de alumnos" });
     }
     res.status(200).json(result);
   });
@@ -1077,6 +1131,93 @@ app.delete("/deleteSemestre", (req, res) => {
       message: "Semestre eliminado con éxito",
     });
   });
+});
+
+//crear user
+app.post("/createUser", async (req, res) => {
+  try {
+    const username = req.body.username;
+    const password = req.body.password;
+    const idAlumno = req.body.idAlumno;
+    //hasheo
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
+      if (err) {
+        console.error("Error al generar el hash de la contraseña:", err);
+        res.status(500).send("Hubo un error al crear el usuario");
+        return;
+      }
+      //rol alumno
+      const idTipoUsuario = 3;
+      await db.query(
+        "INSERT INTO usuario (username, password, Tipo_usuario_idTipo_usuario, Alumnos_idAlumnos) VALUES (?, ?, ?, ?)",
+        [username, hash, idTipoUsuario, idAlumno]
+      );
+      res.status(200).json({
+        message: "Usuario registrado con éxito",
+        username: username,
+      });
+    });
+  } catch (error) {
+    console.error("Error en createUser:", error);
+    res.status(500).send("Hubo un error al crear el usuario");
+  }
+});
+
+//login HACER LOGIN
+app.post("/server/login", (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  db.query(
+    "SELECT * FROM usuario WHERE username=?",
+    username,
+    (err, result) => {
+      if (err) {
+        res.send({ error: err });
+      } else {
+        if (result.length > 0) {
+          bcrypt.compare(password, result[0].password, (error, response) => {
+            if (response) {
+              req.session.user = {
+                idusuario: result[0].idusuario,
+                username: result[0].username,
+                Tipo_usuario_idTipo_usuario:
+                  result[0].Tipo_usuario_idTipo_usuario,
+                Alumnos_idAlumnos: result[0].Alumnos_idAlumnos,
+              };
+              res.send({
+                logIn: true,
+                user: req.session.user,
+              });
+            } else {
+              res.send({
+                logIn: false,
+                message: "Contraseña/Usuario equivocado",
+              });
+            }
+          });
+        } else {
+          res.send({ logIn: false, message: "Contraseña/Usuario equivocado" });
+        }
+      }
+    }
+  );
+});
+
+//COMPRUEBA SI ESTA LOGUEADO O NO
+app.get("/testeoLogin", (req, res) => {
+  if (req.session.user) {
+    res.send({ logIn: true, user: req.session.user });
+  } else {
+    res.send({ logIn: false });
+  }
+});
+
+//log out
+app.get("/server/logout", (req, res) => {
+  if (req.session.user) {
+    res.clearCookie("userId");
+    res.send({ loggedIn: false });
+  }
 });
 
 app.listen(3000, () => {

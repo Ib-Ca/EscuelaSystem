@@ -20,7 +20,7 @@ export default function NavbarDefault() {
   return (
     <Navbar className="bg-body-tertiary">
       <Container>
-        <Navbar.Brand href="/">IFD Santa Clara</Navbar.Brand>
+        <Navbar.Brand href="/home">IFD Santa Clara</Navbar.Brand>
         <Navbar.Toggle />
         <NavbarCollapse>
           <Nav className="me-auto">

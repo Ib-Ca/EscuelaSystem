@@ -29,6 +29,9 @@ function FormularioAñadir() {
   const [idAl, setIdal] = useState();
   const [edit, setEdit] = useState(false);
 
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
   const [selectedpais, setSelectedpais] = useState("");
   //obtener paises de db y component
   useEffect(() => {
@@ -107,7 +110,12 @@ function FormularioAñadir() {
   };
 
   //añadir alumnos
-  const addAlumno = () => {
+  const addAlumno = (e) => {
+    e.preventDefault();
+    console.log("nro docu: ", nro_docu);
+    setUsername(nro_docu);
+    setPassword(nro_docu);
+  
     Axios.post("http://localhost:3000/createAlumno", {
       nombre: nombre,
       apellidos: apellidos,
@@ -124,15 +132,32 @@ function FormularioAñadir() {
       distancia: distancia,
     })
       .then(function (response) {
+        
+        // Asegurarse de que el alumno se haya creado correctamente
+        if (response.data.alumnoCreado===true) {
+          // Si se creó correctamente, entonces crear el usuario
+          return Axios.post("http://localhost:3000/createUser", {
+            username: nro_docu,
+            password: nro_docu,
+            idAlumno: response.data.idAlumno
+          });
+        } else {
+          // Si hubo un problema al crear el alumno, mostrar un mensaje de error
+          throw new Error("Hubo un problema al crear el alumno");
+        }
+      })
+      .then(function (response) {
+        // Limpiar y actualizar la lista solo después de que el usuario se haya creado
+        setUsername(response.data.username);
+        clean();
         listaAlumnos();
-        // console.log("entro en then: ", response);
-        //alert("Alumno Registrado");
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
-        alert("hubo un error");
+        alert(error.message);
       });
   };
+
   //añadir los alumnos al componente
   const listaAlumnos = () => {
     Axios.get("http://localhost:3000/server/allAlumno")
@@ -144,7 +169,7 @@ function FormularioAñadir() {
         console.error("Error al obtener alumnos:", error);
       });
   };
-  console.log("alumno:", alumnos);
+  //console.log("alumno:", alumnos);
 
   useEffect(() => {
     listaAlumnos();
@@ -186,7 +211,6 @@ function FormularioAñadir() {
       .then(function (response) {
         listaAlumnos();
         // console.log("entro en then: ", response);
-        alert("Alumno Eliminado");
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
@@ -238,8 +262,10 @@ function FormularioAñadir() {
   const handleInputDocu = (event) => {
     const inputValue = event.target.value;
     if (/^\d{0,10}$/.test(inputValue)) {
-      setNro_docu(inputValue);
+      setNro_docu(inputValue);   
     }
+    setPassword(nro_docu)
+    setUsername(nro_docu)
   };
 
   const handleInputTele = (event) => {

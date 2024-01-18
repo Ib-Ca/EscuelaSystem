@@ -846,17 +846,20 @@ app.get("/editSemestre/:Nombre", (req, res) => {
 app.put("/completeEditSemestre", (req, res) => {
   const updatedInfo = req.body.updatedInfo;
   const queryPromises = [];
+
   updatedInfo.forEach((data) => {
     const queryPromise = new Promise((resolve, reject) => {
       if (data.idSemestre) {
-        //si hay idSemestre es update
+        // Si hay idSemestre, es una actualización
         const updateQuery = `
           UPDATE semestre
           SET
             Materias_idMaterias = ${data.Materias_idMaterias},
             Profesores_idProfesores = ${data.Profesores_idProfesores}
-          WHERE idSemestre = ${data.idSemestre};
+          WHERE idSemestre = ${data.idSemestre}
+          AND Seccion_idSeccion = (SELECT idSeccion FROM seccion WHERE descripcion = '${data.SeccionDescripcion}');
         `;
+
         db.query(updateQuery, (err, results) => {
           if (err) {
             console.error(
@@ -869,21 +872,22 @@ app.put("/completeEditSemestre", (req, res) => {
           }
         });
       } else {
-        //no hay idSemestre es o add o delete
-        //check si existe materia y profesor
+        // No hay idSemestre, es agregar o eliminar
+        // Verificar si existe materia y profesor
         const checkExistingQuery = `
           SELECT * FROM semestre
           WHERE Seccion_idSeccion = (SELECT idSeccion FROM seccion WHERE descripcion = '${data.SeccionDescripcion}')
           AND Materias_idMaterias = ${data.Materias_idMaterias}
           AND Profesores_idProfesores = ${data.Profesores_idProfesores};
         `;
+
         db.query(checkExistingQuery, (err, existingResults) => {
           if (err) {
             console.error("Error al verificar existencia:", err);
             reject(err);
           } else {
             if (existingResults.length > 0) {
-              //hay Sección, Materia y Profesor
+              // Combinación de Sección, Materia y Profesor ya existe
               console.error(
                 "La combinación de Sección, Materia y Profesor ya existe en la base de datos."
               );
@@ -893,11 +897,12 @@ app.put("/completeEditSemestre", (req, res) => {
                 )
               );
             } else {
-              //no hay, se guarda
+              // No existe, se guarda
               const insertQuery = `
                 INSERT INTO semestre (Nombre, Seccion_idSeccion, Materias_idMaterias, Profesores_idProfesores)
                 VALUES ('${data.Nombre}', (SELECT idSeccion FROM seccion WHERE descripcion = '${data.SeccionDescripcion}'), ${data.Materias_idMaterias}, ${data.Profesores_idProfesores});
               `;
+
               db.query(insertQuery, (err, results) => {
                 if (err) {
                   console.error(
@@ -914,17 +919,22 @@ app.put("/completeEditSemestre", (req, res) => {
         });
       }
     });
+
     queryPromises.push(queryPromise);
   });
 
-  //eliminar filas con el botoncito eliminar
+  // Eliminar filas con el botón eliminar
   const deleteQuery = `
     DELETE FROM semestre
-    WHERE idSemestre NOT IN (${updatedInfo
+    WHERE Seccion_idSeccion = (SELECT idSeccion FROM seccion WHERE descripcion = '${
+      updatedInfo[0].SeccionDescripcion
+    }')
+    AND idSemestre NOT IN (${updatedInfo
       .filter((data) => data.idSemestre)
       .map((data) => data.idSemestre)
       .join(",")});
   `;
+
   db.query(deleteQuery, (err, results) => {
     if (err) {
       console.error("Error al ejecutar la consulta de eliminación:", err);
@@ -1262,8 +1272,7 @@ app.post("/server/login", (req, res) => {
               req.session.user = {
                 idusuario: result[0].idusuario,
                 username: result[0].username,
-                Tipo_usuario_idTipo_usuario:
-                  result[0].Tipo_usuario_idTipo_usuario,
+                rol: result[0].Tipo_usuario_idTipo_usuario,
                 Alumnos_idAlumnos: result[0].Alumnos_idAlumnos,
               };
               res.send({
@@ -1313,6 +1322,137 @@ app.get("/server/roles", (req, res) => {
     }
   });
 });
+
+//crear horario
+app.post("/createHorario", (req, res) => {
+  const { Nombre, Seccion, materia, profesor, year, times } = req.body;
+
+  // Obtener id de materia
+  db.query(
+    "SELECT idMaterias FROM materias WHERE Nombre = ?",
+    [materia],
+    function (err, resultMateria) {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Error al obtener la id de la materia");
+      } else {
+        const idMaterias = resultMateria[0] && resultMateria[0].idMaterias;
+        console.log("ID de la materia:", idMaterias);
+
+        // Obtener id de profesor
+        db.query(
+          "SELECT idProfesores FROM profesores WHERE Nombre = ?",
+          [profesor],
+          function (err, resultProfesor) {
+            if (err) {
+              console.log(err);
+              return res
+                .status(500)
+                .send("Error al obtener la id del profesor");
+            } else {
+              const idProfesores =
+                resultProfesor[0] && resultProfesor[0].idProfesores;
+              console.log("ID del profesor:", idProfesores);
+
+              // Obtener id de sección
+              db.query(
+                "SELECT idSeccion FROM seccion WHERE descripcion = ?",
+                [Seccion],
+                function (err, resultSeccion) {
+                  if (err) {
+                    console.log(err);
+                    return res
+                      .status(500)
+                      .send("Error al obtener la id de la sección");
+                  } else {
+                    const idSeccion =
+                      resultSeccion[0] && resultSeccion[0].idSeccion;
+                    console.log("ID de la sección:", idSeccion);
+
+                    // Obtener id de semestre
+                    const querySemestre =
+                      "SELECT idSemestre FROM semestre WHERE Nombre = ? AND Seccion_idSeccion = ? AND Materias_idMaterias = ? AND Profesores_idProfesores = ?";
+                    db.query(
+                      querySemestre,
+                      [Nombre, idSeccion, idMaterias, idProfesores],
+                      function (err, resultSemestre) {
+                        if (err) {
+                          console.log(err);
+                          return res
+                            .status(500)
+                            .send("Error al obtener la id del semestre");
+                        } else {
+                          const idSemestre =
+                            resultSemestre[0] && resultSemestre[0].idSemestre;
+                          console.log("ID del semestre:", idSemestre);
+
+                          // Insertar horarios en la tabla 'horario'
+                          times.forEach(
+                            async ({ day, horaInicial, horaFinal }) => {
+                              try {
+                                const queryHorario =
+                                  "INSERT INTO horario (dia, año, estado, inicio, fin, Semestre_idSemestre) VALUES (?, ?, ?, ?, ?, ?)";
+                                await db.query(queryHorario, [
+                                  day,
+                                  year,
+                                  "Activo",
+                                  horaInicial,
+                                  horaFinal,
+                                  idSemestre,
+                                ]);
+                              } catch (error) {
+                                console.error(
+                                  "Error al insertar horario:",
+                                  error
+                                );
+                                return res
+                                  .status(500)
+                                  .json({
+                                    error:
+                                      "Error interno del servidor al insertar horario",
+                                  });
+                              }
+                            }
+                          );
+
+                          res
+                            .status(200)
+                            .json({
+                              message: "Horarios guardados exitosamente.",
+                            });
+                        }
+                      }
+                    );
+                  }
+                }
+              );
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+//obtener TODOS los horarios
+app.get("/server/fetchHorarios", (req, res) => {
+  const consultaSQL = `
+    SELECT * FROM horario
+    INNER JOIN semestre ON horario.Semestre_idSemestre = semestre.idSemestre
+    INNER JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias
+    INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores;
+  `;
+  db.query(consultaSQL, (error, results) => {
+    if (error) {
+      console.error("Error al realizar la consulta:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+
 
 
 app.listen(3000, () => {

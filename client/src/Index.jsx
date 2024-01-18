@@ -1,6 +1,6 @@
 // Index.jsx
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useNavigate, } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import FormularioAñadir from "./App.jsx";
 import NavbarDefault from "./components/navbar";
 import { Materias } from "./Materias.jsx";
@@ -10,34 +10,31 @@ import CrearSemestre from "./components/SemestreCreacion.jsx";
 import EditarSemestre from "./components/EditarSemestre.jsx";
 import Login from "./components/Login.jsx";
 import Axios from "axios";
+import Horarios from "./components/Horarios.jsx";
 
 function Index() {
-  const [data, setData] = useState({});
+  let navigate = useNavigate();
+  const [data, setData] = useState({
+    logIn: false,
+    user: { idusuario: 0, username: "", rol: 0, Alumnos_idAlumnos: 0 },
+  });
   const [roles, setRoles] = useState({});
+  Axios.defaults.withCredentials = true;
+
+  const fetchData = () => {
+    Axios.get("http://localhost:3000/testeoLogin").then((response) => {
+      if (response.data.logIn) {
+        setData(response.data.user);
+      } else {
+        navigate("/");
+      }
+    });
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const rolesResponse = await Axios.get(
-          "http://localhost:3000/server/roles"
-        );
-        setRoles(rolesResponse.data);
-        const loginResponse = await Axios.get(
-          "http://localhost:3000/testeoLogin"
-        );
-        if (loginResponse.data.logIn) {
-          setData(loginResponse.data);
-        } 
-      } catch (error) {
-        console.log(error);
-      }
-    };
     fetchData();
-    return () => {};
   }, []);
 
-  console.log("let me data: ", data);
-  console.log("rol", roles);
 
   return (
     <Routes>
@@ -48,16 +45,18 @@ function Index() {
           <>
             <NavbarDefault User={data} />
             <Routes>
-              <Route path="/home" element={<Inicio />} />
-              <Route path="/alumnoAdd" element={<FormularioAñadir />} />
-              <Route path="/materiaAdd" element={<Materias />} />
-              <Route path="/profesorAdd" element={<ProfesoresForm />} />
-              <Route path="/semestreCreate" element={<CrearSemestre />} />
+              <Route path="/home" User={data} element={<Inicio />} />
+              {data && data.rol === 1 && (
+              <>
+                <Route path="/alumnoAdd" element={<FormularioAñadir />}/> 
+                <Route path="/materiaAdd"  element={<Materias />} />
+                <Route path="/profesorAdd" element={<ProfesoresForm />} />
+                <Route path="/semestreCreate"  element={<CrearSemestre />} />
+                <Route path="/semestreEdit/:Nombre"element={<EditarSemestre />} />
+                <Route path="/horario/:Nombre/:Seccion"element={<Horarios />} />
+              </>
+              )}
               <Route path="*" element={<Inicio />} />
-              <Route
-                path="/semestreEdit/:Nombre"
-                element={<EditarSemestre />}
-              />
             </Routes>
           </>
         }

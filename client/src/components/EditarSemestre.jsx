@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Container from "react-bootstrap/esm/Container";
 import { useEffect, useState } from "react";
 import Axios from "axios";
@@ -132,7 +132,7 @@ const EditarSemestre = () => {
 
   //abrir edit
   const handleSeccionEdit = (value) => {
-    setModalTitle(value)
+    setModalTitle(value);
     const semestreEncontrado = semestre.filter(
       (sem) => sem.SeccionDescripcion === value
     );
@@ -181,7 +181,7 @@ const EditarSemestre = () => {
       )
     );
   };
-  //guardar cambios en edit (modal1)
+  // guardar cambios en edit (modal1)
   const handleSaveChanges1 = () => {
     const updatedInfo = info.map((semestreData) => ({
       idSemestre: semestreData.idSemestre,
@@ -190,8 +190,11 @@ const EditarSemestre = () => {
       SeccionDescripcion: semestreData.SeccionDescripcion,
       Nombre: Nombre,
     }));
+    const seccionDescripcion =
+      info.length > 0 ? info[0].SeccionDescripcion : "";
     Axios.put("http://localhost:3000/completeEditSemestre", {
       updatedInfo: updatedInfo,
+      SeccionDescripcion: seccionDescripcion,
     })
       .then(function (response) {
         console.log("entro en then: ", response);
@@ -200,13 +203,14 @@ const EditarSemestre = () => {
       .catch(function (error) {
         console.log("Error en axios: ", error);
       });
+
     console.log("Cambios a guardar:", updatedInfo);
     fetchMat();
     fetchProfe();
     closeModal1();
     window.location.reload(false);
   };
-  
+
   //añadir nueva materia y profesor a la seccion
   const handleAnadirMateria = () => {
     const primeraMateria = materias.length > 0 ? materias[0].idMaterias : null;
@@ -217,7 +221,7 @@ const EditarSemestre = () => {
       {
         Materias_idMaterias: primeraMateria,
         Profesores_idProfesores: primerProfesor,
-        SeccionDescripcion: modalTitle
+        SeccionDescripcion: modalTitle,
       },
     ]);
     setSelectedMateriasArray([...selectedMateriasArray, primeraMateria]);
@@ -227,10 +231,13 @@ const EditarSemestre = () => {
   //quitar materia y prof de fila
   const handleEliminarFila = (index) => {
     setInfo((prevInfo) => prevInfo.filter((item, i) => i !== index));
-    setSelectedMateriasArray((prevArray) => prevArray.filter((item, i) => i !== index));
-    setSelectedProfesor((prevArray) => prevArray.filter((item, i) => i !== index));
+    setSelectedMateriasArray((prevArray) =>
+      prevArray.filter((item, i) => i !== index)
+    );
+    setSelectedProfesor((prevArray) =>
+      prevArray.filter((item, i) => i !== index)
+    );
   };
-  
 
   //asignar alumno (modal2)
   const handleAsignAlumn = (value) => {
@@ -352,8 +359,8 @@ const EditarSemestre = () => {
   };
 
   //LOGS
-  console.log(Nombre);
-  //console.log("Semestres ", semestre);
+  //console.log(Nombre);
+  console.log("Semestres ", semestre);
   //console.log("Seccion unica ", seccionUnica);
   //console.log("materias: ", materias);
   //console.log("profesores: ", profesores);
@@ -414,6 +421,9 @@ const EditarSemestre = () => {
                       >
                         Eliminar Sección
                       </Button>
+                      <Link to={`/horario/${Nombre}/${item}`}>
+                        <Button variant="warning">Horarios</Button>
+                      </Link>
                     </ButtonGroup>
                   </td>
                 </tr>
@@ -478,7 +488,12 @@ const EditarSemestre = () => {
                     </td>
                     <td>
                       <ButtonGroup aria-label="botones">
-                        <Button variant="danger"  onClick={() => handleEliminarFila(idx)}>Eliminar</Button>
+                        <Button
+                          variant="danger"
+                          onClick={() => handleEliminarFila(idx)}
+                        >
+                          Eliminar
+                        </Button>
                       </ButtonGroup>
                     </td>
                   </tr>

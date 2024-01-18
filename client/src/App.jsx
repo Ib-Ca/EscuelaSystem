@@ -12,6 +12,7 @@ import Table from "react-bootstrap/Table";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 
 function FormularioAñadir() {
+  Axios.defaults.withCredentials = true;
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [pais, setPais] = useState([]);
@@ -112,7 +113,6 @@ function FormularioAñadir() {
   //añadir alumnos
   const addAlumno = (e) => {
     e.preventDefault();
-    console.log("nro docu: ", nro_docu);
     setUsername(nro_docu);
     setPassword(nro_docu);
   

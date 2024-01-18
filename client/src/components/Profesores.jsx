@@ -110,7 +110,7 @@ function ProfesoresForm() {
         //setUsername(response.data.username);
         clean();
         listaProfesor();
-        console.log(response.data);
+        //console.log(response.data);
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);

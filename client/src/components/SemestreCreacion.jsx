@@ -110,6 +110,7 @@ const CrearSemestre = () => {
     }
     clean();
     listaSemestres();
+    //window.location.reload(false)
   };
 
   //fetch semestres
@@ -186,7 +187,7 @@ const CrearSemestre = () => {
       });
   };
 
-  console.log("alumnos: ", alumnos);
+  //console.log("alumnos: ", alumnos);
 
   const formRef = useRef(null);
   return (
@@ -258,7 +259,7 @@ const CrearSemestre = () => {
                   >
                     {profesores.map((item, idx) => (
                       <option key={item.idProfesores} value={item.Nombre}>
-                        {item.Nombre}
+                        {item.Nombre} 
                       </option>
                     ))}
                   </Form.Select>

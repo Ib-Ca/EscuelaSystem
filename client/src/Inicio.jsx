@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export const Inicio = () => {
   const [user, setUser] = useState("");
+
   Axios.defaults.withCredentials = true;
   const navigate = useNavigate();
   useEffect(() => {
@@ -11,13 +12,12 @@ export const Inicio = () => {
       .then((response) => {
         if (response.data.logIn) {
           setUser(response.data.user.username);
-          console.log(response.data);
+          //console.log(response.data);
         } else {
           navigate("/");
         }
       })
       .catch((err) => console.log(err));
   }, []);
-
   return <div>pantalla de bienvenidA HOLAAAA {user}</div>;
 };

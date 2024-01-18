@@ -563,11 +563,11 @@ app.post("/createProfesor", (req, res) => {
                   } else {
                     const idProfesor = result.insertId;
                     console.log("El id del profesor es: ", idProfesor);
-                    return res
-                      .status(200)
-                      .send("Profesor registrado con éxito");
+                    return res.status(200).json({
+                      profeCreado: true,
+                      idProfesor: idProfesor,
+                    });
                   }
-                  //
                 }
               );
             }
@@ -592,15 +592,44 @@ app.get("/server/profesores", (req, res) => {
 //borrar profe
 app.delete("/deleteProfe/:idProfesores", (req, res) => {
   const idProfesores = req.params.idProfesores;
-  const query = "DELETE FROM profesores WHERE idProfesores = ?";
-  db.query(query, idProfesores, (err, result) => {
+  const getUsuarioIdQuery =
+    "SELECT usuario_idusuario FROM profesores WHERE idProfesores = ?";
+  db.query(getUsuarioIdQuery, idProfesores, (err, result) => {
     if (err) {
-      console.error("Error al eliminar el profesor:", err);
-      return res.status(500).send("Error al eliminar el profesor");
+      console.error("Error al obtener el usuario_idusuario:", err);
+      return res.status(500).send("Error al eliminar el profesor y su usuario");
     }
-    return res
-      .status(200)
-      .send(`Profesor con ID ${idProfesores} eliminado correctamente`);
+    const usuarioId = result[0].usuario_idusuario;
+    // Eliminar el profesor
+    const deleteProfeQuery = "DELETE FROM profesores WHERE idProfesores = ?";
+    db.query(deleteProfeQuery, idProfesores, (err, result) => {
+      if (err) {
+        console.error("Error al eliminar el profesor:", err);
+        return res
+          .status(500)
+          .send("Error al eliminar el profesor y su usuario");
+      }
+      // Si se encuentra un usuario asociado, eliminarlo
+      if (usuarioId) {
+        const deleteUsuarioQuery = "DELETE FROM usuario WHERE idusuario = ?";
+        db.query(deleteUsuarioQuery, usuarioId, (err, result) => {
+          if (err) {
+            console.error("Error al eliminar el usuario:", err);
+            return res.status(500).send("Error al eliminar el usuario");
+          }
+
+          return res
+            .status(200)
+            .send(
+              `Profesor con ID ${idProfesores} y su usuario eliminados correctamente`
+            );
+        });
+      } else {
+        return res
+          .status(200)
+          .send(`Profesor con ID ${idProfesores} eliminado correctamente`);
+      }
+    });
   });
 });
 
@@ -1133,7 +1162,7 @@ app.delete("/deleteSemestre", (req, res) => {
   });
 });
 
-//crear user
+//crear user alumno
 app.post("/createUser", async (req, res) => {
   try {
     const username = req.body.username;
@@ -1159,6 +1188,59 @@ app.post("/createUser", async (req, res) => {
     });
   } catch (error) {
     console.error("Error en createUser:", error);
+    res.status(500).send("Hubo un error al crear el usuario");
+  }
+});
+
+//crear user profesor
+app.post("/createUser2", (req, res) => {
+  try {
+    const username = req.body.username;
+    const password = req.body.password;
+    const idProfesor = req.body.idProfesor;
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
+      if (err) {
+        console.error("Error al generar el hash de la contraseña:", err);
+        res.status(500).send("Hubo un error al crear el usuario");
+        return;
+      }
+      //rol profe
+      const idTipoUsuario = 2;
+      db.query(
+        "INSERT INTO usuario (username, password, Tipo_usuario_idTipo_usuario) VALUES (?, ?, ?)",
+        [username, hash, idTipoUsuario],
+        (err, result) => {
+          if (err) {
+            console.error(err);
+            res.status(500).send("Error en ingreso de Usuario");
+            return;
+          }
+          const idUsuario = result.insertId;
+          db.query(
+            "UPDATE profesores SET usuario_idusuario = ? WHERE idProfesores = ?",
+            [idUsuario, idProfesor],
+            (err, updateResult) => {
+              if (err) {
+                //console.error(err);
+                res
+                  .status(500)
+                  .send(
+                    "Error al actualizar el profesor con el ID del usuario"
+                  );
+                return;
+              }
+              res.status(200).json({
+                message: "Usuario de profesor registrado con éxito",
+                username: username,
+                idUsuario: idUsuario,
+              });
+            }
+          );
+        }
+      );
+    });
+  } catch (error) {
+    //console.error("Error en createUser2:", error);
     res.status(500).send("Hubo un error al crear el usuario");
   }
 });
@@ -1219,6 +1301,19 @@ app.get("/server/logout", (req, res) => {
     res.send({ loggedIn: false });
   }
 });
+
+//fetch userRoles
+app.get("/server/roles", (req, res) => {
+  const datos_roles = "SELECT * from tipo_usuario";
+  db.query(datos_roles, (err, result) => {
+    if (err) {
+      throw err;
+    } else {
+      res.json(result);
+    }
+  });
+});
+
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

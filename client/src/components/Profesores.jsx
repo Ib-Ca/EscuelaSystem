@@ -83,7 +83,8 @@ function ProfesoresForm() {
   };
 
   //añadir profesores
-  const addProfesor = () => {
+  const addProfesor = (e) => {
+    e.preventDefault();
     Axios.post("http://localhost:3000/createProfesor", {
       nombre: nombre,
       apellidos: apellidos,
@@ -95,15 +96,28 @@ function ProfesoresForm() {
       correo: correo,
     })
       .then(function (response) {
+        if (response.data.profeCreado === true) {
+          return Axios.post("http://localhost:3000/createUser2", {
+            username: nro_docu,
+            password: nro_docu,
+            idProfesor: response.data.idProfesor,
+          });
+        } else {
+          throw new Error("Hubo un problema al crear el profesor");
+        }
+      })
+      .then(function (response) {
+        //setUsername(response.data.username);
+        clean();
         listaProfesor();
-        // console.log("entro en then: ", response);
-        // alert("Profesor Registrado");
+        console.log(response.data);
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
-        alert("hubo un error");
+        alert(error.message || "Hubo un error");
       });
   };
+
   //añadir los profesores al componente
   const listaProfesor = () => {
     Axios.get("http://localhost:3000/server/profesores")
@@ -154,7 +168,9 @@ function ProfesoresForm() {
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
-        alert("El profesor esta asignado a una o varias materias, no puede ser eliminado.");
+        alert(
+          "El profesor esta asignado a una o varias materias, no puede ser eliminado."
+        );
       });
   };
 

@@ -7,6 +7,8 @@ import Axios from "axios";
 import Toast from "react-bootstrap/Toast";
 import { useNavigate } from "react-router-dom";
 
+
+
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,6 +37,7 @@ const Login = () => {
         //console.log("Inicio de sesión exitoso");
         //console.log(response.data.user); //datos del login
         navigate("/home");
+        navigate(0);
       } else {
         setLoginStatus(response.data.message);
         setShow(true);

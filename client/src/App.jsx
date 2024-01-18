@@ -151,6 +151,7 @@ function FormularioAñadir() {
         setUsername(response.data.username);
         clean();
         listaAlumnos();
+     // console.log(response.data);
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);

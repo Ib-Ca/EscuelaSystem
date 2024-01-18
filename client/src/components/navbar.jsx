@@ -9,7 +9,7 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Nav from "react-bootstrap/Nav";
 import NavbarCollapse from "react-bootstrap/esm/NavbarCollapse";
-export default function NavbarDefault() {
+export default function NavbarDefault({User}) {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -42,7 +42,7 @@ export default function NavbarDefault() {
             </NavDropdown>
           </Nav>
           <Nav>
-            <NavDropdown title="USUARIO" id="usuario_nav">
+            <NavDropdown title={User && User.user ? User.user.username : 'Usuario no autenticado'} id="usuario_nav">
               <NavDropdown.Item href="">Info</NavDropdown.Item>
               <NavDropdown.Item href="">Cerrar Sesión</NavDropdown.Item>
             </NavDropdown>

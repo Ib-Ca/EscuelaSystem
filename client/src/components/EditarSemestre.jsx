@@ -332,16 +332,10 @@ const EditarSemestre = () => {
   };
   //eliminar seccion
   const handleDelete = (value) => {
-    console.log("Alumnos Lista: ", alumnos);
+    // si hay alumnos asignados a la sección
     const seccionAsignada = alumnos.some((alumno) => alumno.Seccion === value);
-    const idAlumnosConSeccion = alumnos
-      .filter((alumno) => alumno.Seccion === value)
-      .map((alumno) => alumno.idAlumnos);
     if (seccionAsignada) {
-      alert(
-        "No puede eliminar secciones mientras hayan alumnos asignados a la misma."
-      );
-      //console.log("ID de los alumnos con la sección asignada: ", idAlumnosConSeccion);
+      alert("No puede eliminar secciones mientras hayan alumnos asignados a la misma.");
     } else {
       console.log("No hay alumnos con la sección asignada.");
       console.log("Sección: ", value);
@@ -349,18 +343,19 @@ const EditarSemestre = () => {
         data: { seccionNombre: value },
       })
         .then(function (response) {
-          //console.log("FUNCIONOOO");
           location.reload();
         })
         .catch(function (error) {
-          console.error("Error al eliminar seccion:", error);
+          //console.error("Error al eliminar seccion:", error);
+          alert("Si quiere eliminar la sección, no puede tener nada asignado a la misma");
         });
     }
   };
+  
 
   //LOGS
   //console.log(Nombre);
-  console.log("Semestres ", semestre);
+  //console.log("Semestres ", semestre);
   //console.log("Seccion unica ", seccionUnica);
   //console.log("materias: ", materias);
   //console.log("profesores: ", profesores);

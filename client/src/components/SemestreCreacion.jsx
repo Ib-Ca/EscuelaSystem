@@ -163,11 +163,12 @@ const CrearSemestre = () => {
         throw error;
       });
   };
+  //borrar semestre
   const handleDelete = (value) => {
-    console.log("semestre", value);
+    //console.log("semestre", value);
     fetchAlumnos()
       .then((alumnos) => {
-        console.log("alumnos: ", alumnos);
+      //  console.log("alumnos: ", alumnos);
         const tieneCoincidencia = alumnos.some(
           (alumno) => alumno.SemestreNombre === value.Nombre
         );
@@ -177,15 +178,33 @@ const CrearSemestre = () => {
           );
         } else {
           Axios.delete("http://localhost:3000/deleteSemestre", {
-            data: {Semestre: value},
-          });
-          location.reload();
+            data: { Semestre: value },
+          })
+            .then(() => {
+              alert("Semestre eliminado con éxito");
+              location.reload();
+            })
+            .catch((error) => {
+              if (
+                error.response &&
+                error.response.status === 400 &&
+                error.response.data.error ===
+                  "Este Semestre tiene asignaciones, no puede ser eliminado"
+              ) {
+                alert("Este Semestre tiene asignaciones, no puede ser eliminado");
+              } else {
+                //console.error("Error al eliminar el semestre:", error);
+                alert("Error al eliminar el semestre");
+              }
+            });
         }
       })
       .catch((error) => {
         console.error("Error al obtener la lista de alumnos:", error);
       });
   };
+  
+  
 
   //console.log("alumnos: ", alumnos);
 

@@ -8,7 +8,8 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import { useParams } from "react-router-dom";
-import ListGroup from "react-bootstrap/ListGroup";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import Modal from "react-bootstrap/Modal";
 
 function Horarios() {
   const { Nombre, Seccion } = useParams();
@@ -21,6 +22,15 @@ function Horarios() {
   const [profesor, setProfesor] = useState("");
   const [materiasInfo, setMateriasInfo] = useState([]);
   const [year, setYear] = useState("");
+  const [selectDatos, setSelectDatos] = useState([]);
+  const [titulo, setTitulo] = useState("");
+  const [show, setShow] = useState(false); //modal
+  const handleClose = () => {
+    setSelectDatos([]);
+    setShow(false);
+  }; //modal
+  const handleShow = () => setShow(true); //modal
+  const [editar, setEditar] = useState(false);
 
   useEffect(() => {
     const fetchSemestre = async () => {
@@ -46,7 +56,7 @@ function Horarios() {
     };
     fetchSemestre();
   }, [Nombre, Seccion]);
-
+  //add en la listita de lform dia y horas
   const handleAdd = () => {
     const add = {
       day: dia,
@@ -56,7 +66,7 @@ function Horarios() {
     setTimes((prevTimes) => [...prevTimes, add]);
     clean1();
   };
-
+  //borrar de la lista en el form
   const handleBorrar = (idx) => {
     setTimes((prevTimes) => prevTimes.filter((item, index) => index !== idx));
   };
@@ -87,7 +97,7 @@ function Horarios() {
     setTimes([]);
     clean1();
   };
-
+  //guardra horarios
   const handleSubmit = async (e) => {
     e.preventDefault();
     const aux = {
@@ -110,22 +120,130 @@ function Horarios() {
     }
   };
 
-
-  //ejemplo para obtener todos los horarios creados
-  const [datos,setDatos]=useState(null)
-  const getcosita = () => {
-    Axios.get(`http://localhost:3000/server/fetchHorarios`)
+  const [editId, setEditId] = useState("");
+  // obtener todos los horarios creados y filtrar para edit
+  const handleEdicion = (idProfe, idMateria, materia, profesor) => {
+    setEditar(true);
+    setEditId(idMateria);
+    Axios.get("http://localhost:3000/server/fetchHorarios")
       .then((response) => {
-        // Aquí actualizas el estado con los datos recibidos
-        setDatos(response.data);
+        const horariosFiltrados = response.data.filter((horario) => {
+          return (
+            horario.idProfesores === idProfe &&
+            horario.idMaterias === idMateria &&
+            horario.NombreSemestre === Nombre &&
+            horario.DescripcionSeccion === Seccion
+          );
+        });
+        setYear(horariosFiltrados[0].año);
+        const horariosEstructurados = horariosFiltrados.map((horario) => ({
+          day: horario.dia,
+          horaInicial: horario.inicio,
+          horaFinal: horario.fin,
+        }));
+        setTimes((prevTimes) => [...prevTimes, ...horariosEstructurados]);
+        setProfesor(profesor);
+        setMateria(materia);
       })
       .catch((error) => {
         console.error("Error al hacer la petición:", error);
-        // Aquí podrías manejar el error si es necesario
+        alert("No se encontraron horarios asignados a esta materia");
+        setEditar(false);
       });
   };
-//console.log(datos);
-  //console.log(times);
+
+  //todas ediciones
+  const [index, setIndex] = useState("");
+  const handleEditarHorario = (day, horaInicial, horaFinal, idx) => {
+    setDia(day);
+    setHoraInicio(horaInicial);
+    setHoraFin(horaFinal);
+    setIndex(idx);
+  };
+
+  const handleEditarDiaYHora = () => {
+    if (index !== null) {
+      const newTimes = [...times];
+      newTimes[index] = {
+        day: dia,
+        horaInicial: horaInicio,
+        horaFinal: horaFin,
+      };
+      setTimes(newTimes);
+    }
+    clean1();
+  };
+
+  //guardar cambios edicion
+  const handleEdit = async () => {
+    const aux = {
+      Nombre,
+      Seccion,
+      materia,
+      profesor,
+      year,
+      times,
+      idMateria: editId,
+    };
+    try {
+      const response = await Axios.put(
+        "http://localhost:3000/updateHorario",
+        aux
+      );
+      console.log("dentro: ", times);
+      clean2();
+      setEditar(false);
+    } catch (error) {
+      console.error("Error al enviar los datos:", error);
+    }
+  };
+
+  //ver horarios
+  const handleVer = (idProfe, idMateria, materia) => {
+    setTitulo(materia);
+    console.log("idProfe:", idProfe, "idMateria:", idMateria);
+    Axios.get(`http://localhost:3000/server/fetchHorarios`)
+      .then((response) => {
+        const horariosFiltrados = response.data.filter((horario) => {
+          return (
+            horario.idProfesores === idProfe &&
+            horario.idMaterias === idMateria &&
+            horario.NombreSemestre === Nombre &&
+            horario.DescripcionSeccion === Seccion
+          );
+        });
+        console.log(horariosFiltrados);
+        console.log("Horarios filtrados:", horariosFiltrados); // Agregado para depuración
+        if (horariosFiltrados.length === 0) {
+          alert("No se encontraron horarios asignados a esta materia");
+        } else {
+          setSelectDatos(horariosFiltrados);
+          handleShow();
+        }
+      })
+      .catch((error) => {
+        console.error("Error al hacer la petición:", error);
+        alert("Hubo un error, por favor inténtelo de nuevo");
+      });
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await Axios.get(
+          "http://localhost:3000/server/fetchHorarios"
+        );
+        console.log(response.data); // Muestra los datos en la consola
+      } catch (error) {
+        console.error("Error al obtener datos:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  console.log(selectDatos);
+  //console.log("tablita: ", times);
   //console.log(dia);
   //console.log(horaInicio);
   //console.log(horaFin);
@@ -134,6 +252,7 @@ function Horarios() {
   //console.log(year);
   //console.log(data);
   //console.log(materiasInfo);
+  //console.log(editar);
   return (
     <>
       <Container>
@@ -209,12 +328,34 @@ function Horarios() {
                   />
                 </Form.Group>
                 <Col md="3" style={{ paddingTop: "32px" }}>
-                  <Button variant="success" onClick={handleAdd}>
-                    Añadir día y hora
-                  </Button>
+                  {!editar ? (
+                    <Button variant="success" onClick={handleAdd}>
+                      Añadir día y hora
+                    </Button>
+                  ) : (
+                    <Button variant="success" onClick={handleEditarDiaYHora}>
+                      Editar día y hora
+                    </Button>
+                  )}
                 </Col>
               </Row>
-              <Button type="submit">Crear horario</Button>
+              {!editar && <Button type="submit">Crear horario</Button>}
+              {editar && (
+                <>
+                  <Button variant="primary" onClick={handleEdit}>
+                    Guardar cambios
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      clean2();
+                      setEditar(false);
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                </>
+              )}
               <div style={{ paddingTop: "16px" }}>
                 <Table bordered hover>
                   <thead>
@@ -222,7 +363,7 @@ function Horarios() {
                       <th>Día</th>
                       <th>Hora Inicial</th>
                       <th>Hora Final</th>
-                      <th></th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -232,6 +373,21 @@ function Horarios() {
                         <td>{item.horaInicial}</td>
                         <td>{item.horaFinal}</td>
                         <td>
+                          {editar && (
+                            <Button
+                              variant="info"
+                              onClick={() =>
+                                handleEditarHorario(
+                                  item.day,
+                                  item.horaInicial,
+                                  item.horaFinal,
+                                  idx
+                                )
+                              }
+                            >
+                              Editar
+                            </Button>
+                          )}
                           <Button
                             variant="danger"
                             onClick={() => handleBorrar(idx)}
@@ -266,12 +422,41 @@ function Horarios() {
                   <td>{item.nombreProfesor}</td>
                   <td>{item.apellidoProfesor}</td>
                   <td>
-                    <Button
-                      variant="success"
-                      onClick={() => handleAddHorario(item)}
-                    >
-                      Añadir Horarios
-                    </Button>
+                    {!editar && (
+                      <ButtonGroup aria-label="Basic example">
+                        <Button
+                          variant="success"
+                          onClick={() => handleAddHorario(item)}
+                        >
+                          Añadir
+                        </Button>
+                        <Button
+                          variant="warning"
+                          onClick={() =>
+                            handleEdicion(
+                              item.idProfesor,
+                              item.idMateria,
+                              item.nombreMateria,
+                              item.nombreProfesor
+                            )
+                          }
+                        >
+                          Editar horario
+                        </Button>
+                        <Button
+                          variant="info"
+                          onClick={() =>
+                            handleVer(
+                              item.idProfesor,
+                              item.idMateria,
+                              item.nombreMateria
+                            )
+                          }
+                        >
+                          Ver horarios
+                        </Button>
+                      </ButtonGroup>
+                    )}
                   </td>
                 </tr>
               );
@@ -279,6 +464,42 @@ function Horarios() {
           </tbody>
         </Table>
       </Container>
+      <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>{titulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Table bordered hover>
+            <thead>
+              <tr>
+                <th>Día</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin</th>
+                <th>Profesor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {selectDatos.map((item, idx) => {
+                return (
+                  <tr key={idx}>
+                    <td>{item.dia}</td>
+                    <td>{item.inicio}</td>
+                    <td>{item.fin}</td>
+                    <td>
+                      {item.Nombre} {item.Apellido}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }

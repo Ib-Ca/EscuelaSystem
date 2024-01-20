@@ -42,20 +42,25 @@ export default function NavbarDefault({ User }) {
                 <NavDropdown.Item href="/semestreCreate">
                   Semestres
                 </NavDropdown.Item>
+                <NavDropdown.Item href="/horario">Horarios</NavDropdown.Item>
               </NavDropdown>
             )}
             {User && (User.rol === 1 || User.rol === 2) && (
               <NavDropdown title="DOCENTES" id="doc">
+                <NavDropdown.Item href={`/profesor/alumno/${User.username}`}>
+                  Ver Alumnos
+                </NavDropdown.Item>
+                <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
+                <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
+              </NavDropdown>
+            )}
+            {User && (User.rol === 1 || User.rol === 3) && (
+              <NavDropdown title="ALUMNOS" id="alumnos">
                 <NavDropdown.Item href="">Placeholder1</NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
               </NavDropdown>
             )}
-            <NavDropdown title="ALUMNOS" id="alumnos">
-              <NavDropdown.Item href="">Placeholder1</NavDropdown.Item>
-              <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
-              <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
-            </NavDropdown>
           </Nav>
           <Nav>
             <NavDropdown

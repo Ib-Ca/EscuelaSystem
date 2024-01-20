@@ -11,6 +11,8 @@ import EditarSemestre from "./components/EditarSemestre.jsx";
 import Login from "./components/Login.jsx";
 import Axios from "axios";
 import Horarios from "./components/Horarios.jsx";
+import Allhorario from "./Allhorario.jsx";
+import VerAlumnos from "./components/profesores/verAlumnos.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -34,8 +36,7 @@ function Index() {
   useEffect(() => {
     fetchData();
   }, []);
-
-
+  //console.log(data);
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -47,14 +48,27 @@ function Index() {
             <Routes>
               <Route path="/home" User={data} element={<Inicio />} />
               {data && data.rol === 1 && (
-              <>
-                <Route path="/alumnoAdd" element={<FormularioAñadir />}/> 
-                <Route path="/materiaAdd"  element={<Materias />} />
-                <Route path="/profesorAdd" element={<ProfesoresForm />} />
-                <Route path="/semestreCreate"  element={<CrearSemestre />} />
-                <Route path="/semestreEdit/:Nombre"element={<EditarSemestre />} />
-                <Route path="/horario/:Nombre/:Seccion"element={<Horarios />} />
-              </>
+                <>
+                  <Route path="/alumnoAdd" element={<FormularioAñadir />} />
+                  <Route path="/materiaAdd" element={<Materias />} />
+                  <Route path="/profesorAdd" element={<ProfesoresForm />} />
+                  <Route path="/semestreCreate" element={<CrearSemestre />} />
+                  <Route
+                    path="/semestreEdit/:Nombre"
+                    element={<EditarSemestre />}
+                  />
+                  <Route
+                    path="/horario/:Nombre/:Seccion"
+                    element={<Horarios />}
+                  />
+                  <Route path="/horario" element={<Allhorario />} />
+                </>
+              )}
+              {data && (data.rol === 1 || data.rol === 2) && (
+                <Route
+                  path="/profesor/alumno/:username"
+                  element={<VerAlumnos />}
+                />
               )}
               <Route path="*" element={<Inicio />} />
             </Routes>

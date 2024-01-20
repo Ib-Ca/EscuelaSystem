@@ -1058,7 +1058,7 @@ app.put("/unassignAlumno", (req, res) => {
 //eliminar seccion en semestre
 app.delete("/deleteSeccionSemestre", (req, res) => {
   const seccionNombre = req.body.seccionNombre;
-  //idsección
+  // Obtener la ID de la sección
   const obtenerIdSeccionQuery = `
     SELECT idSeccion
     FROM seccion
@@ -1074,22 +1074,39 @@ app.delete("/deleteSeccionSemestre", (req, res) => {
       return res.status(404).json({ error: "Sección no encontrada" });
     }
     const idSeccion = results[0].idSeccion;
-    //delete
-    const eliminarSemestresQuery = `
-      DELETE FROM semestre
-      WHERE Seccion_idSeccion = ?;
+    const verificarHorariosQuery = `
+      SELECT COUNT(*) AS total
+      FROM horario
+      WHERE Semestre_idSemestre IN (SELECT idSemestre FROM semestre WHERE Seccion_idSeccion = ?);
     `;
-    db.query(eliminarSemestresQuery, [idSeccion], (err, deleteResults) => {
+    db.query(verificarHorariosQuery, [idSeccion], (err, countResult) => {
       if (err) {
-        console.error("Error al eliminar semestres:", err);
+        console.error("Error al verificar horarios asociados:", err);
         return res.status(500).json({ error: "Error al eliminar semestres" });
       }
-      console.log(
-        `Se eliminaron ${deleteResults.affectedRows} semestres con la ID de sección ${idSeccion}`
-      );
-      res
-        .status(200)
-        .json({ success: true, message: "Semestres eliminados con éxito" });
+      const totalHorarios = countResult[0].total;
+      if (totalHorarios > 0) {
+        return res.status(400).json({
+          error: "No se puede eliminar la sección. Tiene horarios asociados.",
+        });
+      }
+      const eliminarSemestresQuery = `
+        DELETE FROM semestre
+        WHERE Seccion_idSeccion = ?;
+      `;
+      db.query(eliminarSemestresQuery, [idSeccion], (err, deleteResults) => {
+        if (err) {
+          console.error("Error al eliminar semestres:", err);
+          return res.status(500).json({ error: "Error al eliminar semestres" });
+        }
+
+        console.log(
+          `Se eliminaron ${deleteResults.affectedRows} semestres con la ID de sección ${idSeccion}`
+        );
+        res
+          .status(200)
+          .json({ success: true, message: "Semestres eliminados con éxito" });
+      });
     });
   });
 });
@@ -1154,13 +1171,20 @@ app.get("/server/allAlumno", (req, res) => {
 //eliminar semestre
 app.delete("/deleteSemestre", (req, res) => {
   const semestreNombre = req.body.Semestre.Nombre;
-  //console.log("semestre: ", semestreNombre);
+
   const deleteQuery = `
     DELETE FROM semestre
     WHERE Nombre = ?;
   `;
   db.query(deleteQuery, [semestreNombre], (err, result) => {
     if (err) {
+      // Verificar si el error es debido a restricciones de clave externa (foreign key)
+      if (err.code === "ER_ROW_IS_REFERENCED_2") {
+        console.error("Error al eliminar semestre:", err);
+        return res.status(400).json({
+          error: "Este Semestre tiene asignaciones, no puede ser eliminado",
+        });
+      }
       console.error("Error al eliminar semestre:", err);
       return res.status(500).json({ error: "Error al eliminar el semestre" });
     }
@@ -1405,21 +1429,17 @@ app.post("/createHorario", (req, res) => {
                                   "Error al insertar horario:",
                                   error
                                 );
-                                return res
-                                  .status(500)
-                                  .json({
-                                    error:
-                                      "Error interno del servidor al insertar horario",
-                                  });
+                                return res.status(500).json({
+                                  error:
+                                    "Error interno del servidor al insertar horario",
+                                });
                               }
                             }
                           );
 
-                          res
-                            .status(200)
-                            .json({
-                              message: "Horarios guardados exitosamente.",
-                            });
+                          res.status(200).json({
+                            message: "Horarios guardados exitosamente.",
+                          });
                         }
                       }
                     );
@@ -1435,14 +1455,26 @@ app.post("/createHorario", (req, res) => {
 });
 
 //obtener TODOS los horarios
-app.get("/server/fetchHorarios", (req, res) => {
+app.get("/server/getProfeAlumno/:username", (req, res) => {
+  const { username } = req.params;
   const consultaSQL = `
-    SELECT * FROM horario
-    INNER JOIN semestre ON horario.Semestre_idSemestre = semestre.idSemestre
+    SELECT
+      semestre.*,
+      profesores.*,
+      usuario.idusuario,
+      usuario.username,
+      seccion.descripcion AS DescripcionSeccion,
+      materias.Nombre AS NombreMateria,
+      semestre.Nombre AS NombreSemestre
+    FROM semestre
+    INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores
+    INNER JOIN usuario ON profesores.usuario_idusuario = usuario.idusuario
+    INNER JOIN seccion ON semestre.Seccion_idSeccion = seccion.idSeccion
     INNER JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias
-    INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores;
+    WHERE usuario.username = ?
   `;
-  db.query(consultaSQL, (error, results) => {
+
+  db.query(consultaSQL, [username], (error, results) => {
     if (error) {
       console.error("Error al realizar la consulta:", error);
       res.status(500).json({ error: "Error interno del servidor" });
@@ -1451,8 +1483,193 @@ app.get("/server/fetchHorarios", (req, res) => {
     }
   });
 });
+;
 
 
+//actualizar horarios
+app.put("/updateHorario", async (req, res) => {
+  const { Nombre, Seccion, materia, year, times, idMateria } = req.body;
+  // Obtén el idSeccion utilizando la descripción
+  const sqlGetSeccion = `
+    SELECT idSeccion
+    FROM seccion
+    WHERE descripcion = ?;
+  `;
+  db.query(sqlGetSeccion, [Seccion], (errGetSeccion, resultGetSeccion) => {
+    if (errGetSeccion) {
+      console.error("Error al obtener idSeccion:", errGetSeccion);
+      res.status(500).send("Error en el servidor al obtener idSeccion");
+      return;
+    }
+    if (resultGetSeccion.length === 0) {
+      console.error(
+        "No se encontró el idSeccion para la descripción de sección especificada"
+      );
+      res
+        .status(404)
+        .send(
+          "No se encontró el idSeccion para la descripción de sección especificada"
+        );
+      return;
+    }
+
+    const idSeccion = resultGetSeccion[0].idSeccion;
+
+    // Obtén el idMaterias utilizando el nombre
+    const sqlGetMateria = `
+      SELECT idMaterias
+      FROM materias
+      WHERE Nombre = ?;
+    `;
+
+    db.query(sqlGetMateria, [materia], (errGetMateria, resultGetMateria) => {
+      if (errGetMateria) {
+        console.error("Error al obtener idMaterias:", errGetMateria);
+        res.status(500).send("Error en el servidor al obtener idMaterias");
+        return;
+      }
+
+      if (resultGetMateria.length === 0) {
+        console.error(
+          "No se encontró el idMaterias para el nombre de materia especificado"
+        );
+        res
+          .status(404)
+          .send(
+            "No se encontró el idMaterias para el nombre de materia especificado"
+          );
+        return;
+      }
+
+      const idMaterias = resultGetMateria[0].idMaterias;
+
+      // Obtén el idSemestre utilizando la información de NombreSemestre, idSeccion y idMaterias
+      const sqlGetSemestre = `
+        SELECT idSemestre
+        FROM semestre
+        WHERE Nombre = ? AND Seccion_idSeccion = ? AND Materias_idMaterias = ?;
+      `;
+
+      db.query(
+        sqlGetSemestre,
+        [Nombre, idSeccion, idMaterias],
+        (errGetSemestre, resultGetSemestre) => {
+          if (errGetSemestre) {
+            console.error("Error al obtener idSemestre:", errGetSemestre);
+            res.status(500).send("Error en el servidor al obtener idSemestre");
+            return;
+          }
+
+          if (resultGetSemestre.length === 0) {
+            console.error(
+              "No se encontró el idSemestre para el semestre, sección y materia especificados"
+            );
+            res
+              .status(404)
+              .send(
+                "No se encontró el idSemestre para el semestre, sección y materia especificados"
+              );
+            return;
+          }
+
+          const idSemestre = resultGetSemestre[0].idSemestre;
+
+          // Luego, actualiza la información de los horarios asociados a ese semestre
+          // Esto asume que los horarios ya están almacenados en la base de datos con una relación al semestre
+          const sqlDeleteHorarios = `
+            DELETE FROM horario
+            WHERE Semestre_idSemestre = ?;
+          `;
+
+          db.query(
+            sqlDeleteHorarios,
+            [idSemestre],
+            (errDeleteHorarios, resultDeleteHorarios) => {
+              if (errDeleteHorarios) {
+                console.error(
+                  "Error al eliminar horarios antiguos:",
+                  errDeleteHorarios
+                );
+                res
+                  .status(500)
+                  .send("Error en el servidor al eliminar horarios antiguos");
+                return;
+              }
+
+              console.log("Eliminación de horarios antiguos exitosa");
+
+              // Inserta los nuevos horarios si times no está vacío
+              if (times.length > 0) {
+                const sqlInsertHorarios = `
+                  INSERT INTO horario (dia, año, estado, inicio, fin, Semestre_idSemestre)
+                  VALUES ?;
+                `;
+
+                const horariosValues = times.map((horario) => [
+                  horario.day,
+                  year,
+                  "Activo",
+                  horario.horaInicial,
+                  horario.horaFinal,
+                  idSemestre,
+                ]);
+
+                db.query(
+                  sqlInsertHorarios,
+                  [horariosValues],
+                  (errInsertHorarios, resultInsertHorarios) => {
+                    if (errInsertHorarios) {
+                      console.error(
+                        "Error al insertar nuevos horarios:",
+                        errInsertHorarios
+                      );
+                      res
+                        .status(500)
+                        .send(
+                          "Error en el servidor al insertar nuevos horarios"
+                        );
+                      return;
+                    }
+
+                    console.log("Inserción de nuevos horarios exitosa");
+                    res.status(200).send("Actualización exitosa");
+                  }
+                );
+              } else {
+                // Si times está vacío, simplemente envía una respuesta de éxito
+                console.log("No se proporcionaron nuevos horarios");
+                res
+                  .status(200)
+                  .send("Actualización exitosa (sin nuevos horarios)");
+              }
+            }
+          );
+        }
+      );
+    });
+  });
+});
+
+app.get("/server/getProfeAlumno/:username", (req, res) => {
+  const { username } = req.params;
+  const consultaSQL = `
+    SELECT semestre.*, profesores.*, usuario.*, seccion.descripcion AS DescripcionSeccion, materias.Nombre AS NombreMateria
+    FROM semestre
+    INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores
+    INNER JOIN usuario ON profesores.usuario_idusuario = usuario.idusuario
+    INNER JOIN seccion ON semestre.Seccion_idSeccion = seccion.idSeccion
+    INNER JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias
+    WHERE usuario.username = ?
+  `;
+  db.query(consultaSQL, [username], (error, results) => {
+    if (error) {
+      console.error("Error al realizar la consulta:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
 
 
 app.listen(3000, () => {

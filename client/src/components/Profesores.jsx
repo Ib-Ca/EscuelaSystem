@@ -29,12 +29,6 @@ function ProfesoresForm() {
   useEffect(() => {
     Axios.get("http://localhost:3000/server/paises").then((response) => {
       setPais(response.data);
-      const paisPredeterminado = response.data.find(
-        (option) => option.idNacionalidad === 14
-      );
-      if (paisPredeterminado) {
-        setSelectedpais(paisPredeterminado.idNacionalidad.toString());
-      }
     });
   }, []);
   //cambiar pais en select

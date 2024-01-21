@@ -1350,7 +1350,6 @@ app.get("/server/roles", (req, res) => {
 //crear horario
 app.post("/createHorario", (req, res) => {
   const { Nombre, Seccion, materia, profesor, year, times } = req.body;
-
   // Obtener id de materia
   db.query(
     "SELECT idMaterias FROM materias WHERE Nombre = ?",
@@ -1479,8 +1478,6 @@ app.get("/server/fetchHorarios", (req, res) => {
     }
   });
 });
-
-
 
 //actualizar horarios
 app.put("/updateHorario", async (req, res) => {
@@ -1646,10 +1643,20 @@ app.put("/updateHorario", async (req, res) => {
   });
 });
 
-app.get("/server/getProfeAlumno/:username", (req, res) => {
+//ver lista de semestres para los profesores
+app.get("/server/getProfeSemestre/:username", (req, res) => {
   const { username } = req.params;
   const consultaSQL = `
-    SELECT semestre.*, profesores.*, usuario.*, seccion.descripcion AS DescripcionSeccion, materias.Nombre AS NombreMateria
+    SELECT
+      semestre.*,
+      profesores.*,
+      usuario.idusuario,
+      usuario.username,
+      usuario.Tipo_usuario_idTipo_usuario,
+      usuario.Alumnos_idAlumnos,
+      seccion.descripcion AS DescripcionSeccion,
+      materias.Nombre AS NombreMateria,
+      semestre.Nombre AS NombreSemestre
     FROM semestre
     INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores
     INNER JOIN usuario ON profesores.usuario_idusuario = usuario.idusuario
@@ -1657,6 +1664,7 @@ app.get("/server/getProfeAlumno/:username", (req, res) => {
     INNER JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias
     WHERE usuario.username = ?
   `;
+
   db.query(consultaSQL, [username], (error, results) => {
     if (error) {
       console.error("Error al realizar la consulta:", error);
@@ -1667,6 +1675,118 @@ app.get("/server/getProfeAlumno/:username", (req, res) => {
   });
 });
 
+//ver lista de alumnos para los profesores
+app.get("/server/fetchProfeAlumno", (req, res) => {
+  const semestreNombre = req.query.semestre;
+  const idSeccion = req.query.idSeccion;
+
+  // Obtener idSemestre
+  db.query(
+    "SELECT idSemestre FROM semestre WHERE Nombre = ? AND Seccion_idSeccion = ? LIMIT 1",
+    [semestreNombre, idSeccion],
+    function (err, idSemestreQuery) {
+      if (err) {
+        console.log(err);
+        return res
+          .status(500)
+          .json({ error: "Error al obtener la id del semestre" });
+      }
+
+      if (!idSemestreQuery || idSemestreQuery.length === 0) {
+        return res.status(404).json({ error: "Semestre no encontrado" });
+      }
+
+      const idSemestre = idSemestreQuery[0].idSemestre;
+
+      // Obtener alumnos
+      db.query(
+        "SELECT * FROM alumnos WHERE Semestre_idSemestre = ?",
+        [idSemestre],
+        function (err, alumnosQuery) {
+          if (err) {
+            console.log(err);
+            return res
+              .status(500)
+              .json({ error: "Error al obtener datos de alumnos" });
+          }
+
+          res.json(alumnosQuery);
+        }
+      );
+    }
+  );
+});
+
+//get gravedades
+app.get("/server/gravedades", (req, res) => {
+  const datos_gravedad = "SELECT * FROM gravedad_observacion";
+  db.query(datos_gravedad, (err, result) => {
+    if (err) {
+      throw err;
+    }
+    res.json(result);
+  });
+});
+
+//crear obsrevaciones
+app.post("/createObservacion", (req, res) => {
+  const { alumnoObs, fecha, obs, idGravedad } = req.body;
+  const insertObservationQuery = `
+    INSERT INTO observacion 
+    (Alumnos_idAlumnos, descripcion, fecha, Profesores_idProfesores, Gravedad_observacion_idGravedad_observacion) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  db.query(
+    insertObservationQuery,
+    [alumnoObs.idAlumno, obs, fecha, alumnoObs.idProfesor, idGravedad],
+    (error, results) => {
+      if (error) {
+        console.error("Error:", error);
+        res.status(500).json({ error: "Error insert" });
+      } else {
+        res.status(200).json({ message: "Completado con exito" });
+      }
+    }
+  );
+});
+
+//fetch all observaciones
+app.get("/server/observacion", (req, res) => {
+  const observacion_datos = "SELECT * from observacion";
+  db.query(observacion_datos, (err, result) => {
+    if (err) {
+      throw err;
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+//obtener datos de profesor mediante idusuario
+app.get('/server/getProfesor/:idUsuario', (req, res) => {
+  const { idUsuario } = req.params;
+  const query = 'SELECT * FROM profesores WHERE usuario_idusuario = ?';
+  db.query(query, [idUsuario], (error, results) => {
+    if (error) {
+      console.error('Error al obtener datos del profesor:', error);
+      res.status(500).json({ error: 'Error al obtener datos del profesor' });
+    } else {
+      if (results.length > 0) {
+        const profesorData = results[0];
+        res.status(200).json(profesorData);
+      } else {
+        res.status(404).json({ message: 'Profesor no encontrado' });
+      }
+    }
+  });
+});
+
+//obtener datos de alumno para observacione
+app.post("http://localhost:3000/server/getAlumnosInfo",(req,res)=>{
+
+
+
+})
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

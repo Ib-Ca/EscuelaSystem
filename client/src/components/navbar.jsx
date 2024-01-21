@@ -25,7 +25,6 @@ export default function NavbarDefault({ User }) {
       location.reload(false);
     });
   };
-  console.log(User);
   return (
     <Navbar className="bg-body-tertiary" style={{ marginBottom: "26px" }}>
       <Container>
@@ -33,7 +32,7 @@ export default function NavbarDefault({ User }) {
         <Navbar.Toggle />
         <NavbarCollapse>
           <Nav className="me-auto">
-            {User.user && User.user.rol === 1 && (
+            {User && User.user.rol === 1 && (
               <NavDropdown title="ADMINISTRACIÓN" id="admin">
                 <NavDropdown.Item href="/alumnoAdd">Alumnos</NavDropdown.Item>
                 <NavDropdown.Item href="/materiaAdd">Materias</NavDropdown.Item>
@@ -46,13 +45,23 @@ export default function NavbarDefault({ User }) {
                 <NavDropdown.Item href="/horario">Horarios</NavDropdown.Item>
               </NavDropdown>
             )}
-         
+
             {User && (User.user.rol === 1 || User.user.rol === 2) && (
               <NavDropdown title="DOCENTES" id="doc">
-                 <NavDropdown.Item as={Link} to={{ pathname: `/profesor/alumno/${User.user.username}`, state: { User } }}>
-                  Ver Alumnos
+                <NavDropdown.Item
+                  href={`/profesor/alumno/${
+                    User && User.user && User.user.username
+                  }`}
+                >
+                  Alumnos--Obs
                 </NavDropdown.Item>
-                <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
+                <NavDropdown.Item
+                  href={`/profesor/observaciones/${
+                    User && User.user && User.user.username
+                  }`}
+                >
+                  Lista Observaciones
+                </NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
               </NavDropdown>
             )}

@@ -13,6 +13,7 @@ import Axios from "axios";
 import Horarios from "./components/Horarios.jsx";
 import Allhorario from "./Allhorario.jsx";
 import VerAlumnos from "./components/profesores/verAlumnos.jsx";
+import VerObsProfe from "./components/profesores/verObsProfe.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -36,10 +37,8 @@ function Index() {
   useEffect(() => {
     fetchData();
   }, []);
- //console.log(data);
+  //console.log(data);
 
-
- 
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -68,10 +67,18 @@ function Index() {
                 </>
               )}
               {data && (data.user.rol === 1 || data.user.rol === 2) && (
+                <>
                 <Route
                   path="/profesor/alumno/:username"
-                  element={<VerAlumnos />}
+                  element={<VerAlumnos User={data}/>}
+                  User={data}
                 />
+                 <Route
+                  path="/profesor/observaciones/:username"
+                  element={<VerObsProfe User={data}/>}
+                  User={data}
+                />
+                </>
               )}
               <Route path="*" element={<Inicio />} />
             </Routes>

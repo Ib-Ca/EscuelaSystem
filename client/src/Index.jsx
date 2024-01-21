@@ -26,7 +26,7 @@ function Index() {
   const fetchData = () => {
     Axios.get("http://localhost:3000/testeoLogin").then((response) => {
       if (response.data.logIn) {
-        setData(response.data.user);
+        setData(response.data);
       } else {
         navigate("/");
       }
@@ -36,7 +36,10 @@ function Index() {
   useEffect(() => {
     fetchData();
   }, []);
-  //console.log(data);
+ //console.log(data);
+
+
+ 
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -47,7 +50,7 @@ function Index() {
             <NavbarDefault User={data} />
             <Routes>
               <Route path="/home" User={data} element={<Inicio />} />
-              {data && data.rol === 1 && (
+              {data.user && data.user.rol === 1 && (
                 <>
                   <Route path="/alumnoAdd" element={<FormularioAñadir />} />
                   <Route path="/materiaAdd" element={<Materias />} />
@@ -64,7 +67,7 @@ function Index() {
                   <Route path="/horario" element={<Allhorario />} />
                 </>
               )}
-              {data && (data.rol === 1 || data.rol === 2) && (
+              {data && (data.user.rol === 1 || data.user.rol === 2) && (
                 <Route
                   path="/profesor/alumno/:username"
                   element={<VerAlumnos />}

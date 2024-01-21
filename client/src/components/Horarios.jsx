@@ -201,7 +201,7 @@ function Horarios() {
   //ver horarios
   const handleVer = (idProfe, idMateria, materia) => {
     setTitulo(materia);
-    console.log("idProfe:", idProfe, "idMateria:", idMateria);
+    //console.log("idProfe:", idProfe, "idMateria:", idMateria);
     Axios.get(`http://localhost:3000/server/fetchHorarios`)
       .then((response) => {
         const horariosFiltrados = response.data.filter((horario) => {
@@ -242,7 +242,7 @@ function Horarios() {
     fetchData();
   }, []);
 
-  console.log(selectDatos);
+  //console.log(selectDatos);
   //console.log("tablita: ", times);
   //console.log(dia);
   //console.log(horaInicio);

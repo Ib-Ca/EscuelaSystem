@@ -1,12 +1,15 @@
 import  Axios  from 'axios';
-import React, { useEffect } from 'react'
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom';
 
 
 
 function VerAlumnos() {
     Axios.defaults.withCredentials = true;
+    const location=useLocation()
     const { username } = useParams();
+    const [User, setUser] = useState(location.state && location.state.User);
+
     useEffect(() => {
         const fetchData = async () => {
           try {
@@ -18,16 +21,13 @@ function VerAlumnos() {
           }
         };
     
-        if (username) {
+        if (!User && username) {
           fetchData();
         }
-      }, [username]);
+      }, [User, username]);
 
 
 
-
-
-    console.log("User:", username);
   return <div>verAlumnos</div>;
 }
 

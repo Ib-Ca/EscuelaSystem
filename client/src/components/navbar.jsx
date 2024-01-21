@@ -10,6 +10,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import Nav from "react-bootstrap/Nav";
 import NavbarCollapse from "react-bootstrap/esm/NavbarCollapse";
 import Axios from "axios";
+import { Link } from "react-router-dom";
 export default function NavbarDefault({ User }) {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -24,7 +25,7 @@ export default function NavbarDefault({ User }) {
       location.reload(false);
     });
   };
-
+  console.log(User);
   return (
     <Navbar className="bg-body-tertiary" style={{ marginBottom: "26px" }}>
       <Container>
@@ -32,7 +33,7 @@ export default function NavbarDefault({ User }) {
         <Navbar.Toggle />
         <NavbarCollapse>
           <Nav className="me-auto">
-            {User && User.rol === 1 && (
+            {User.user && User.user.rol === 1 && (
               <NavDropdown title="ADMINISTRACIÓN" id="admin">
                 <NavDropdown.Item href="/alumnoAdd">Alumnos</NavDropdown.Item>
                 <NavDropdown.Item href="/materiaAdd">Materias</NavDropdown.Item>
@@ -45,16 +46,17 @@ export default function NavbarDefault({ User }) {
                 <NavDropdown.Item href="/horario">Horarios</NavDropdown.Item>
               </NavDropdown>
             )}
-            {User && (User.rol === 1 || User.rol === 2) && (
+         
+            {User && (User.user.rol === 1 || User.user.rol === 2) && (
               <NavDropdown title="DOCENTES" id="doc">
-                <NavDropdown.Item href={`/profesor/alumno/${User.username}`}>
+                 <NavDropdown.Item as={Link} to={{ pathname: `/profesor/alumno/${User.user.username}`, state: { User } }}>
                   Ver Alumnos
                 </NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
               </NavDropdown>
             )}
-            {User && (User.rol === 1 || User.rol === 3) && (
+            {User && (User.user.rol === 1 || User.user.rol === 3) && (
               <NavDropdown title="ALUMNOS" id="alumnos">
                 <NavDropdown.Item href="">Placeholder1</NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
@@ -65,8 +67,8 @@ export default function NavbarDefault({ User }) {
           <Nav>
             <NavDropdown
               title={
-                User && User.idusuario
-                  ? User.username
+                User && User.user.idusuario
+                  ? User.user.username
                   : "Usuario no autenticado"
               }
               id="usuario_nav"

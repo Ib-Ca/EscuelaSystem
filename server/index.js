@@ -1455,26 +1455,22 @@ app.post("/createHorario", (req, res) => {
 });
 
 //obtener TODOS los horarios
-app.get("/server/getProfeAlumno/:username", (req, res) => {
-  const { username } = req.params;
+app.get("/server/fetchHorarios", (req, res) => {
   const consultaSQL = `
-    SELECT
-      semestre.*,
-      profesores.*,
-      usuario.idusuario,
-      usuario.username,
-      seccion.descripcion AS DescripcionSeccion,
+    SELECT 
+      horario.*, 
+      semestre.Nombre AS NombreSemestre,
+      materias.*, 
       materias.Nombre AS NombreMateria,
-      semestre.Nombre AS NombreSemestre
-    FROM semestre
-    INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores
-    INNER JOIN usuario ON profesores.usuario_idusuario = usuario.idusuario
-    INNER JOIN seccion ON semestre.Seccion_idSeccion = seccion.idSeccion
+      profesores.*, 
+      seccion.descripcion AS DescripcionSeccion
+    FROM horario
+    INNER JOIN semestre ON horario.Semestre_idSemestre = semestre.idSemestre
     INNER JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias
-    WHERE usuario.username = ?
+    INNER JOIN profesores ON semestre.Profesores_idProfesores = profesores.idProfesores
+    INNER JOIN seccion ON semestre.Seccion_idSeccion = seccion.idSeccion
   `;
-
-  db.query(consultaSQL, [username], (error, results) => {
+  db.query(consultaSQL, (error, results) => {
     if (error) {
       console.error("Error al realizar la consulta:", error);
       res.status(500).json({ error: "Error interno del servidor" });
@@ -1483,7 +1479,7 @@ app.get("/server/getProfeAlumno/:username", (req, res) => {
     }
   });
 });
-;
+
 
 
 //actualizar horarios

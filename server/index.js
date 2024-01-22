@@ -1840,6 +1840,302 @@ app.put("/updateObs", async (req, res) => {
   }
 });
 
+//eliminar observacion
+app.delete("/deleteObs", async (req, res) => {
+  try {
+    const { idObservacion } = req.body;
+    const deleteQuery = `
+      DELETE FROM observacion
+      WHERE idObservacion = ?
+    `;
+    db.query(deleteQuery, [idObservacion], (error, results) => {
+      if (error) {
+        console.error("Error al eliminar la observación:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+      } else {
+        res.json({
+          success: true,
+          message: "Observación eliminada exitosamente",
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error al eliminar la observación:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+//tipos de proceso
+app.get("/getTipoProceso", async (req, res) => {
+  try {
+    const selectQuery = "SELECT * FROM tipo_proceso";
+    db.query(selectQuery, (error, results) => {
+      if (error) {
+        console.error("Error al obtener datos de tipo_proceso:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+      } else {
+        res.json(results);
+      }
+    });
+  } catch (error) {
+    console.error("Error al obtener datos de tipo_proceso:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+//tipos de indicadores
+app.get("/geTipoIndicadores", async (req, res) => {
+  try {
+    const selectQuery = "SELECT * FROM tipo_indicador";
+    db.query(selectQuery, (error, results) => {
+      if (error) {
+        console.error("Error al obtener datos de indicadores:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+      } else {
+        res.json(results);
+      }
+    });
+  } catch (error) {
+    console.error("Error al obtener datos de indicadores:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+//insertar proceso
+app.post("/crearProceso", async (req, res) => {
+  const { datos1, datos2 } = req.body;
+  db.beginTransaction(function (err) {
+    if (err) {
+      console.error("Error al iniciar la transacción:", err);
+      return res.status(500).json({ error: "Error interno del servidor" });
+    }
+    // Obtener ID de tipo proceso
+    db.query(
+      "SELECT idTipo_proceso FROM tipo_proceso WHERE descripcion = ?",
+      [datos1.selectTipoProc],
+      function (err, tipoProcesoResult) {
+        if (err) {
+          db.rollback(function () {
+            console.error("Error al obtener ID de tipo proceso:", err);
+            res.status(500).json({ error: "Error interno del servidor" });
+          });
+        }
+        if (tipoProcesoResult.length === 0) {
+          db.rollback(function () {
+            console.error("Tipo de proceso no encontrado");
+            res.status(500).json({ error: "Tipo de proceso no encontrado" });
+          });
+        } else {
+          const tipoProcesoId = tipoProcesoResult[0].idTipo_proceso;
+
+          // Obtener ID de seccion
+          db.query(
+            "SELECT idSeccion FROM seccion WHERE descripcion = ?",
+            [datos1.seccion],
+            function (err, seccionResult) {
+              if (err) {
+                db.rollback(function () {
+                  console.error("Error al obtener ID de sección:", err);
+                  res.status(500).json({ error: "Error interno del servidor" });
+                });
+              }
+              if (seccionResult.length === 0) {
+                db.rollback(function () {
+                  console.error("Sección no encontrada");
+                  res.status(500).json({ error: "Sección no encontrada" });
+                });
+              } else {
+                const seccionId = seccionResult[0].idSeccion;
+
+                // Obtener ID de materia
+                db.query(
+                  "SELECT idMaterias FROM materias WHERE Nombre = ?",
+                  [datos1.materia],
+                  function (err, materiaResult) {
+                    if (err) {
+                      db.rollback(function () {
+                        console.error("Error al obtener ID de materia:", err);
+                        res
+                          .status(500)
+                          .json({ error: "Error interno del servidor" });
+                      });
+                    }
+                    if (materiaResult.length === 0) {
+                      db.rollback(function () {
+                        console.error("Materia no encontrada");
+                        res
+                          .status(500)
+                          .json({ error: "Materia no encontrada" });
+                      });
+                    } else {
+                      const materiaId = materiaResult[0].idMaterias;
+
+                      // Obtener ID de semestre
+                      db.query(
+                        "SELECT idSemestre FROM semestre WHERE Materias_idMaterias = ? AND Seccion_idSeccion = ? AND Nombre = ?",
+                        [materiaId, seccionId, datos1.semestre],
+                        function (err, semestreResult) {
+                          if (err) {
+                            db.rollback(function () {
+                              console.error(
+                                "Error al obtener ID de semestre:",
+                                err
+                              );
+                              res
+                                .status(500)
+                                .json({ error: "Error interno del servidor" });
+                            });
+                          }
+                          if (semestreResult.length === 0) {
+                            db.rollback(function () {
+                              console.error("Semestre no encontrado");
+                              res
+                                .status(500)
+                                .json({ error: "Semestre no encontrado" });
+                            });
+                          } else {
+                            const semestreId = semestreResult[0].idSemestre;
+
+                            // Obtener ID de tipo indicador
+                            const tipoIndicador = datos2.tablita[0].tipo; // Suponiendo que todos los indicadores tienen el mismo tipo
+                            db.query(
+                              "SELECT idTipoIndicador FROM tipo_indicador WHERE Descripcion = ?",
+                              [tipoIndicador],
+                              function (err, tipoIndicadorResult) {
+                                if (err) {
+                                  db.rollback(function () {
+                                    console.error(
+                                      "Error al obtener ID de tipo indicador:",
+                                      err
+                                    );
+                                    res
+                                      .status(500)
+                                      .json({
+                                        error: "Error interno del servidor",
+                                      });
+                                  });
+                                }
+                                if (tipoIndicadorResult.length === 0) {
+                                  db.rollback(function () {
+                                    console.error(
+                                      "Tipo de indicador no encontrado"
+                                    );
+                                    res
+                                      .status(500)
+                                      .json({
+                                        error:
+                                          "Tipo de indicador no encontrado",
+                                      });
+                                  });
+                                } else {
+                                  const tipoIndicadorId =
+                                    tipoIndicadorResult[0].idTipoIndicador;
+
+                                  // Insertar datos en la tabla procesos
+                                  db.query(
+                                    "INSERT INTO procesos (nombre, fecha_entrega, total_puntos, Tipo_proceso_idTipo_proceso, Semestre_idSemestre) VALUES (?, ?, ?, ?, ?)",
+                                    [
+                                      datos1.nombreProc,
+                                      datos1.fecha,
+                                      datos1.totpuntos,
+                                      tipoProcesoId,
+                                      semestreId,
+                                    ],
+                                    function (err, procesoResult) {
+                                      if (err) {
+                                        db.rollback(function () {
+                                          console.error(
+                                            "Error al insertar datos en la tabla procesos:",
+                                            err
+                                          );
+                                          res
+                                            .status(500)
+                                            .json({
+                                              error:
+                                                "Error interno del servidor",
+                                            });
+                                        });
+                                      }
+
+                                      const procesoId = procesoResult.insertId;
+
+                                      // Insertar datos en la tabla indicadores
+                                      const indicadores = datos2.tablita;
+                                      const indicadoresValues = indicadores.map(
+                                        (indicador) => [
+                                          indicador.indicador,
+                                          indicador.puntos,
+                                          tipoIndicadorId,
+                                          procesoId,
+                                        ]
+                                      );
+
+                                      db.query(
+                                        "INSERT INTO indicadores (descripcion, puntos, idTipoIndicador, idProcesos) VALUES ?",
+                                        [indicadoresValues],
+                                        function (err, indicadoresResult) {
+                                          if (err) {
+                                            db.rollback(function () {
+                                              console.error(
+                                                "Error al insertar datos en la tabla indicadores:",
+                                                err
+                                              );
+                                              res
+                                                .status(500)
+                                                .json({
+                                                  error:
+                                                    "Error interno del servidor",
+                                                });
+                                            });
+                                          }
+
+                                          // Commit la transacción
+                                          db.commit(function (err) {
+                                            if (err) {
+                                              db.rollback(function () {
+                                                console.error(
+                                                  "Error al hacer commit de la transacción:",
+                                                  err
+                                                );
+                                                res
+                                                  .status(500)
+                                                  .json({
+                                                    error:
+                                                      "Error interno del servidor",
+                                                  });
+                                              });
+                                            }
+
+                                            res
+                                              .status(200)
+                                              .json({
+                                                mensaje:
+                                                  "Proceso y indicadores creados exitosamente",
+                                                idProceso: procesoId,
+                                              });
+                                          });
+                                        }
+                                      );
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      );
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+  });
+});
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

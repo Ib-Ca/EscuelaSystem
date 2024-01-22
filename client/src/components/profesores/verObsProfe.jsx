@@ -31,6 +31,7 @@ function VerObsProfe({ User }) {
   const [mostrar, setMostrar] = useState([]);
   const [editar, setEditar] = useState({ idObservacion: "", descObs: "" });
   const [texto, setTexto] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   //check url y user log
   useEffect(() => {
@@ -111,6 +112,21 @@ function VerObsProfe({ User }) {
     handleClose();
   };
 
+  const handleDelete = async () => {
+    try {
+      const response = await Axios.delete("http://localhost:3000/deleteObs", {
+        data: { idObservacion: editar.idObservacion },
+      });
+      if (response.data.success) {
+        handleClose2();
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error al enviar los datos:", error);
+      alert("Hubo un error");
+    }
+  };
+
   //guardar cambios
   const handleEdit = async () => {
     try {
@@ -123,8 +139,8 @@ function VerObsProfe({ User }) {
         window.location.reload(); // Recarga la página
       }
     } catch (error) {
-      console.error("Error al enviar los datos:", error);
-      //alert("Hubo un error")
+      //console.error("Error al enviar los datos:", error);
+      alert("Hubo un error");
     }
   };
 
@@ -136,7 +152,14 @@ function VerObsProfe({ User }) {
     <>
       <Container>
         <Card>
-          <Card.Header as="h5">Featured</Card.Header>
+          <Card.Header as="h5">
+            <input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </Card.Header>
           <Card.Body>
             <Table striped bordered hover>
               <thead>
@@ -151,8 +174,17 @@ function VerObsProfe({ User }) {
                 </tr>
               </thead>
               <tbody>
-                {alumnosData.map((item, idx) => {
-                  return (
+                {alumnosData
+                  .filter(
+                    (item) =>
+                      item.Nombre.toLowerCase().includes(
+                        busqueda.toLowerCase()
+                      ) ||
+                      item.Apellido.toLowerCase().includes(
+                        busqueda.toLowerCase()
+                      )
+                  )
+                  .map((item, idx) => (
                     <tr key={idx}>
                       <td>{idx}</td>
                       <td>{item.NombreSemestre}</td>
@@ -171,11 +203,9 @@ function VerObsProfe({ User }) {
                         </Button>
                       </td>
                     </tr>
-                  );
-                })}
+                  ))}
               </tbody>
             </Table>
-            <Button variant="primary">Go somewhere</Button>
           </Card.Body>
         </Card>
       </Container>
@@ -230,7 +260,7 @@ function VerObsProfe({ User }) {
         keyboard={false}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Modal title</Modal.Title>
+          <Modal.Title>Observación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <FloatingLabel controlId="floatingTextarea2" label="descripcion">
@@ -251,6 +281,9 @@ function VerObsProfe({ User }) {
           </FloatingLabel>
         </Modal.Body>
         <Modal.Footer>
+          <Button variant="danger" onClick={handleDelete}>
+            Eliminar
+          </Button>
           <Button variant="secondary" onClick={handleClose2}>
             Cancelar
           </Button>

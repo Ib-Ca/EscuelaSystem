@@ -62,7 +62,11 @@ export default function NavbarDefault({ User }) {
                 >
                   Lista Observaciones
                 </NavDropdown.Item>
-                <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
+                <NavDropdown.Item
+                  href={`/profesor/procesos/${
+                    User && User.user && User.user.username
+                  }`}
+                >Procesos</NavDropdown.Item>
               </NavDropdown>
             )}
             {User && (User.user.rol === 1 || User.user.rol === 3) && (

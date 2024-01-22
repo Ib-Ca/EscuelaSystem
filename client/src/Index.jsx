@@ -14,6 +14,7 @@ import Horarios from "./components/Horarios.jsx";
 import Allhorario from "./Allhorario.jsx";
 import VerAlumnos from "./components/profesores/verAlumnos.jsx";
 import VerObsProfe from "./components/profesores/verObsProfe.jsx";
+import Procesos from "./components/profesores/Procesos.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -68,16 +69,21 @@ function Index() {
               )}
               {data && (data.user.rol === 1 || data.user.rol === 2) && (
                 <>
-                <Route
-                  path="/profesor/alumno/:username"
-                  element={<VerAlumnos User={data}/>}
-                  User={data}
-                />
-                 <Route
-                  path="/profesor/observaciones/:username"
-                  element={<VerObsProfe User={data}/>}
-                  User={data}
-                />
+                  <Route
+                    path="/profesor/alumno/:username"
+                    element={<VerAlumnos User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/profesor/observaciones/:username"
+                    element={<VerObsProfe User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/profesor/procesos/:username"
+                    element={<Procesos User={data} />}
+                    User={data}
+                  />
                 </>
               )}
               <Route path="*" element={<Inicio />} />

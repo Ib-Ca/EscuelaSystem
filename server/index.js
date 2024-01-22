@@ -1763,30 +1763,82 @@ app.get("/server/observacion", (req, res) => {
 });
 
 //obtener datos de profesor mediante idusuario
-app.get('/server/getProfesor/:idUsuario', (req, res) => {
+app.get("/server/getProfesor/:idUsuario", (req, res) => {
   const { idUsuario } = req.params;
-  const query = 'SELECT * FROM profesores WHERE usuario_idusuario = ?';
+  const query = "SELECT * FROM profesores WHERE usuario_idusuario = ?";
   db.query(query, [idUsuario], (error, results) => {
     if (error) {
-      console.error('Error al obtener datos del profesor:', error);
-      res.status(500).json({ error: 'Error al obtener datos del profesor' });
+      console.error("Error al obtener datos del profesor:", error);
+      res.status(500).json({ error: "Error al obtener datos del profesor" });
     } else {
       if (results.length > 0) {
         const profesorData = results[0];
         res.status(200).json(profesorData);
       } else {
-        res.status(404).json({ message: 'Profesor no encontrado' });
+        res.status(404).json({ message: "Profesor no encontrado" });
       }
     }
   });
 });
 
 //obtener datos de alumno para observacione
-app.post("http://localhost:3000/server/getAlumnosInfo",(req,res)=>{
+app.post("/server/getAlumnosInfo", async (req, res) => {
+  try {
+    const { alumnosIds } = req.body;
+    const consulta = `
+      SELECT
+        a.idAlumnos,
+        a.Nombre,
+        a.Apellido,
+        a.Numero_docu,
+        a.Numero_telefono,
+        a.Correo,
+        a.Semestre_idSemestre,
+        a.Seccion,
+        s.Nombre as NombreSemestre
+      FROM alumnos a
+      LEFT JOIN semestre s ON a.Semestre_idSemestre = s.idSemestre
+      WHERE a.idAlumnos IN (?)
+    `;
+    db.query(consulta, [alumnosIds], (error, resultados) => {
+      if (error) {
+        console.error("Error al ejecutar la consulta:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+      } else {
+        res.json(resultados);
+      }
+    });
+  } catch (error) {
+    console.error("Error al obtener información de los alumnos:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
 
-
-
-})
+//actualizar obsservacion
+app.put("/updateObs", async (req, res) => {
+  try {
+    const { idObservacion, descObs } = req.body;
+    const updateQuery = `
+      UPDATE observacion
+      SET descripcion = ?
+      WHERE idObservacion = ?
+    `;
+    db.query(updateQuery, [descObs, idObservacion], (error, results) => {
+      if (error) {
+        console.error("Error al actualizar la descripción:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+      } else {
+        res.json({
+          success: true,
+          message: "Descripción actualizada exitosamente",
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error al actualizar la descripción:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

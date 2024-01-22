@@ -25,10 +25,7 @@ function VerAlumnos({ User }) {
   };
   const handleShow2 = () => setShow2(true);
 
-  //3
-  const [show3, setShow3] = useState(false);
-  const handleClose3 = () => setShow3(false);
-  const handleShow3 = () => setShow3(true);
+
   ///////////////////////////////////////////
   const { username } = useParams();
   const navigate = useNavigate();
@@ -327,6 +324,7 @@ function VerAlumnos({ User }) {
             <FloatingLabel controlId="floatingTextarea2" label="Observación">
               <Form.Control
                 as="textarea"
+                required
                 placeholder="Observación"
                 maxLength={255}
                 style={{ height: "100px" }}
@@ -343,21 +341,6 @@ function VerAlumnos({ User }) {
           </Button>
           <Button variant="primary" onClick={handleGuardar}>
             Crear Observación
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={show3} onHide={handleClose3}>
-        <Modal.Header closeButton>
-          <Modal.Title>Modal heading</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Woohoo, you are reading this text in a modal!</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose3}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleClose3}>
-            Save Changes
           </Button>
         </Modal.Footer>
       </Modal>

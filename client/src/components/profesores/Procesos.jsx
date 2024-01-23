@@ -12,6 +12,10 @@ import Modal from "react-bootstrap/Modal";
 import Axios from "axios";
 
 function Procesos({ User }) {
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  ///////////////////////////////
   const { username } = useParams();
   const navigate = useNavigate();
   const [editar, setEditar] = useState(false);
@@ -29,6 +33,12 @@ function Procesos({ User }) {
   const [tablita, setTablita] = useState([]);
   const [fecha, setFecha] = useState(undefined);
   const [semestreInfo, setSemestreInfo] = useState([]);
+  const [infoProc, setInfoProc] = useState([]);
+  const [infoIndicador, setInfoIndicador] = useState([]);
+  const [aux, setAux] = useState([]);
+  const [idAux, setIdAux] = useState("");
+  const [idAux2, setIdAux2] = useState("");
+  const [idAux3, setIdAux3] = useState("");
   //check url y user log
   useEffect(() => {
     if (!(User && User.user.username === username)) {
@@ -76,6 +86,7 @@ function Procesos({ User }) {
     setMateria("");
     setSeccion("");
     setSemestre("");
+    setSelectTipoProc("");
     clean1();
   };
   //tablita
@@ -91,6 +102,7 @@ function Procesos({ User }) {
       indicador: nombreIndi,
       puntos: puntosNum,
       tipo: selectIndic,
+      id: "",
     };
     setTablita((prevTimes) => [...prevTimes, add]);
     clean1();
@@ -158,8 +170,115 @@ function Procesos({ User }) {
     }
   };
 
-  //console.log("dsjkapodas: ", semestreInfo);
+  //ver lista de procesos para editar o no puede ser borrar
+  const handleEdicion = (NombreSemestre, DescripcionSeccion, NombreMateria) => {
+    const datos = {
+      NombreSemestre: NombreSemestre,
+      DescripcionSeccion: DescripcionSeccion,
+      NombreMateria: NombreMateria,
+    };
+    Axios.post("http://localhost:3000/server/getProceso", datos)
+      .then((response) => {
+        const respuestaServidor = response.data;
+        setInfoProc(respuestaServidor.procesos);
+        setInfoIndicador(respuestaServidor.indicadores);
+        setAux(datos);
+        //console.log("server: ", respuestaServidor);
+        handleShow();
+      })
+      .catch((error) => {
+        // console.error("Error: ", error);
+        alert("No existen procesos");
+      });
+  };
+  //comenzar proceso de edicion
+  const editarProceso = (idx) => {
+    const idProcesos = infoProc[idx].idProcesos;
+    setIdAux(idProcesos);
+    setIdAux2(infoProc[idx].Semestre_idSemestre);
+    setTotpuntos(infoProc[idx].total_puntos);
+    setNombreProc(infoProc[idx].nombre);
+    setFecha(infoProc[idx].fecha_entrega);
+    setMateria(aux.NombreMateria);
+    setSeccion(aux.DescripcionSeccion);
+    setSemestre(aux.NombreSemestre);
+    setEditar(true);
 
+    const tipoProcesoId = infoProc[idx].Tipo_proceso_idTipo_proceso;
+    const tipoProcesoSeleccionado = tipoProceso.find(
+      (item) => item.idTipo_proceso === tipoProcesoId
+    );
+    setSelectTipoProc(tipoProcesoSeleccionado.descripcion);
+
+    const indicadoresProcesoActual = infoIndicador.filter(
+      (indicador) => indicador.idProcesos === idProcesos
+    );
+    setTablita((prev) => [
+      ...prev,
+      ...indicadoresProcesoActual.map((indicador) => ({
+        indicador: indicador.descripcion,
+        puntos: indicador.puntos,
+        tipo: indicador.tipo_indicador_descripcion,
+        id: indicador.idIndicadores,
+      })),
+    ]);
+    handleClose();
+  };
+  //rellenar para editar indicador
+  const [index, setIndex] = useState("");
+  const handleRellenar = (descripcion, puntos, tipo, idx) => {
+    setNombreIndi(descripcion);
+    setPuntos(puntos);
+    setSelectIndi(tipo);
+    setIndex(idx);
+  };
+
+  //editar indicador
+  const handleEditIndicador = () => {
+    if (index !== null) {
+      const nuevo = [...tablita];
+      const puntoAnterior = nuevo[index].puntos;
+      nuevo[index] = {
+        indicador: nombreIndi,
+        puntos: puntos,
+        tipo: selectIndic,
+        id: nuevo[index].id,
+      };
+      setTablita(nuevo);
+      const numero = puntos - puntoAnterior;
+      setTotpuntos((prevTotal) => prevTotal + numero);
+    }
+    clean1();
+  };
+  //actualizar
+  const handleGuardarCambios = async () => {
+    const datos = {
+      datos1: {
+        semestre,
+        seccion,
+        materia,
+        nombreProc,
+        selectTipoProc,
+        fecha,
+        totpuntos,
+        idSemestre: idAux2,
+        idProcesos: idAux,
+      },
+      datos2: {
+        tablita,
+      },
+    };
+    try {
+      const response = await Axios.put("http://localhost:3000/updateProceso", {
+        datos,
+      });
+      clean2();
+      setEditar(false);
+    } catch (error) {
+      console.error("Error al enviar los datos:", error);
+    }
+  };
+  //console.log("dsjkapodas: ", semestreInfo);
   return User && User.user.username === username ? (
     <>
       <Container>
@@ -170,28 +289,15 @@ function Procesos({ User }) {
               <Row className="mb-3">
                 <Form.Group as={Col} md="4" controlId="semestre">
                   <Form.Label>Semestre</Form.Label>
-                  <Form.Control
-                    disabled
-                    type="text"
-                    value={semestre}
-                  />
+                  <Form.Control disabled type="text" value={semestre} />
                 </Form.Group>
                 <Form.Group as={Col} md="4" controlId="seccion">
                   <Form.Label>Sección</Form.Label>
-                  <Form.Control
-                    type="text"
-                    disabled
-                    value={seccion}
-                  />
+                  <Form.Control type="text" disabled value={seccion} />
                 </Form.Group>
                 <Form.Group as={Col} md="4" controlId="materia">
                   <Form.Label>Materia</Form.Label>
-                  <Form.Control
-                    type="text"
-                    disabled
-                    required
-                    value={materia}
-                  />
+                  <Form.Control type="text" disabled required value={materia} />
                 </Form.Group>
               </Row>
               <Row className="mb-3">
@@ -220,16 +326,16 @@ function Procesos({ User }) {
                   </Form.Select>
                 </Form.Group>
                 <Form.Group as={Col} md="2" controlId="fecha">
-                <Form.Label>Fecha</Form.Label>
-                <Form.Control
-                  required
-                  onChange={(e) => {
-                    setFecha(e.target.value);
-                  }}
-                  type="date"
-                  value={fecha || ""}
-                />
-              </Form.Group>
+                  <Form.Label>Fecha</Form.Label>
+                  <Form.Control
+                    required
+                    onChange={(e) => {
+                      setFecha(e.target.value);
+                    }}
+                    type="date"
+                    value={fecha || ""}
+                  />
+                </Form.Group>
                 <Form.Group as={Col} md="2" controlId="total">
                   <Form.Label as="h5">Total Pts</Form.Label>
                   <Form.Control
@@ -279,27 +385,28 @@ function Procesos({ User }) {
                       Añadir indicador
                     </Button>
                   ) : (
-                    <Button variant="success" onClick={""}>
-                      Editar día y hora
+                    <Button variant="success" onClick={handleEditIndicador}>
+                      Editar Indicador
                     </Button>
                   )}
                 </Col>
               </Row>
-              {!editar && <Button type="submit">Crear horario</Button>}
+              {!editar && <Button type="submit">Crear</Button>}
               {editar && (
                 <>
-                  <Button variant="primary" onClick={""}>
+                  <Button variant="primary" onClick={handleGuardarCambios}>
                     Guardar cambios
                   </Button>
                   <Button
                     variant="secondary"
-                    /*         onClick={() => {
+                    onClick={() => {
                       clean2();
                       setEditar(false);
-                    }}*/
+                    }}
                   >
                     Cancelar
                   </Button>
+                  <Button variant="danger">Eliminar</Button>
                 </>
               )}
               <div style={{ paddingTop: "16px" }}>
@@ -320,7 +427,17 @@ function Procesos({ User }) {
                         <td>{item.tipo}</td>
                         <td>
                           {editar && (
-                            <Button variant="info" onClick={""}>
+                            <Button
+                              variant="info"
+                              onClick={(e) => {
+                                handleRellenar(
+                                  item.indicador,
+                                  item.puntos,
+                                  item.tipo,
+                                  idx
+                                );
+                              }}
+                            >
                               Editar
                             </Button>
                           )}
@@ -370,14 +487,13 @@ function Procesos({ User }) {
                           variant="warning"
                           onClick={() =>
                             handleEdicion(
-                              item.idProfesor,
-                              item.idMateria,
-                              item.nombreMateria,
-                              item.nombreProfesor
+                              item.NombreSemestre,
+                              item.DescripcionSeccion,
+                              item.NombreMateria
                             )
                           }
                         >
-                          Editar horario
+                          Ver Procesos
                         </Button>
                         <Button
                           variant="info"
@@ -389,7 +505,7 @@ function Procesos({ User }) {
                             )
                           }
                         >
-                          Ver horarios
+                          Corregir Procesos
                         </Button>
                       </ButtonGroup>
                     )}
@@ -400,6 +516,40 @@ function Procesos({ User }) {
           </tbody>
         </Table>
       </Container>
+      <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body>
+          <Table bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {infoProc.map((item, idx) => {
+                return (
+                  <tr key={idx}>
+                    <td>{idx}</td>
+                    <td>{item.nombre}</td>
+                    <td>
+                      <Button onClick={(e) => editarProceso(idx)}>
+                        Editar
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   ) : null;
 }

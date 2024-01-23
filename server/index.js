@@ -2008,11 +2008,9 @@ app.post("/crearProceso", async (req, res) => {
                                       "Error al obtener ID de tipo indicador:",
                                       err
                                     );
-                                    res
-                                      .status(500)
-                                      .json({
-                                        error: "Error interno del servidor",
-                                      });
+                                    res.status(500).json({
+                                      error: "Error interno del servidor",
+                                    });
                                   });
                                 }
                                 if (tipoIndicadorResult.length === 0) {
@@ -2020,12 +2018,9 @@ app.post("/crearProceso", async (req, res) => {
                                     console.error(
                                       "Tipo de indicador no encontrado"
                                     );
-                                    res
-                                      .status(500)
-                                      .json({
-                                        error:
-                                          "Tipo de indicador no encontrado",
-                                      });
+                                    res.status(500).json({
+                                      error: "Tipo de indicador no encontrado",
+                                    });
                                   });
                                 } else {
                                   const tipoIndicadorId =
@@ -2048,12 +2043,9 @@ app.post("/crearProceso", async (req, res) => {
                                             "Error al insertar datos en la tabla procesos:",
                                             err
                                           );
-                                          res
-                                            .status(500)
-                                            .json({
-                                              error:
-                                                "Error interno del servidor",
-                                            });
+                                          res.status(500).json({
+                                            error: "Error interno del servidor",
+                                          });
                                         });
                                       }
 
@@ -2080,12 +2072,10 @@ app.post("/crearProceso", async (req, res) => {
                                                 "Error al insertar datos en la tabla indicadores:",
                                                 err
                                               );
-                                              res
-                                                .status(500)
-                                                .json({
-                                                  error:
-                                                    "Error interno del servidor",
-                                                });
+                                              res.status(500).json({
+                                                error:
+                                                  "Error interno del servidor",
+                                              });
                                             });
                                           }
 
@@ -2097,22 +2087,18 @@ app.post("/crearProceso", async (req, res) => {
                                                   "Error al hacer commit de la transacción:",
                                                   err
                                                 );
-                                                res
-                                                  .status(500)
-                                                  .json({
-                                                    error:
-                                                      "Error interno del servidor",
-                                                  });
+                                                res.status(500).json({
+                                                  error:
+                                                    "Error interno del servidor",
+                                                });
                                               });
                                             }
 
-                                            res
-                                              .status(200)
-                                              .json({
-                                                mensaje:
-                                                  "Proceso y indicadores creados exitosamente",
-                                                idProceso: procesoId,
-                                              });
+                                            res.status(200).json({
+                                              mensaje:
+                                                "Proceso y indicadores creados exitosamente",
+                                              idProceso: procesoId,
+                                            });
                                           });
                                         }
                                       );
@@ -2134,6 +2120,154 @@ app.post("/crearProceso", async (req, res) => {
       }
     );
   });
+});
+
+//conseguir proceso específico
+app.post("/server/getProceso", (req, res) => {
+  const { NombreSemestre, DescripcionSeccion, NombreMateria } = req.body;
+  db.query(
+    "SELECT idSemestre FROM semestre WHERE Nombre = ? AND Seccion_idSeccion = (SELECT idSeccion FROM seccion WHERE descripcion = ?) AND Materias_idMaterias = (SELECT idMaterias FROM materias WHERE Nombre = ?)",
+    [NombreSemestre, DescripcionSeccion, NombreMateria],
+    (err, result) => {
+      if (err) {
+        console.error("Error al obtener idSemestre:", err);
+        res.status(500).json({ error: "Error interno del servidor" });
+      } else {
+        if (result.length === 0) {
+          console.error("Semestre no encontrado");
+          res.status(404).json({ error: "Semestre no encontrado" });
+        } else {
+          const idSemestre = result[0].idSemestre;
+
+          // Obtener datos de procesos, tipo_proceso y nombre del semestre
+          db.query(
+            "SELECT p.*, tp.descripcion AS tipo_proceso_descripcion, s.Nombre AS nombre_semestre FROM procesos p " +
+              "INNER JOIN tipo_proceso tp ON p.Tipo_proceso_idTipo_proceso = tp.idTipo_proceso " +
+              "INNER JOIN semestre s ON p.Semestre_idSemestre = s.idSemestre " +
+              "WHERE p.Semestre_idSemestre = ?",
+            [idSemestre],
+            (err, procesosResult) => {
+              if (err) {
+                console.error("Error al obtener datos de procesos:", err);
+                res.status(500).json({ error: "Error interno del servidor" });
+              } else {
+                // Obtener datos de indicadores con tipo_indicador
+                db.query(
+                  "SELECT i.*, ti.Descripcion AS tipo_indicador_descripcion FROM indicadores i " +
+                    "LEFT JOIN tipo_indicador ti ON i.idTipoIndicador = ti.idTipoIndicador " +
+                    "WHERE i.idProcesos IN (?)",
+                  [procesosResult.map((proceso) => proceso.idProcesos)],
+                  (err, indicadoresResult) => {
+                    if (err) {
+                      console.error(
+                        "Error al obtener datos de indicadores:",
+                        err
+                      );
+                      res
+                        .status(500)
+                        .json({ error: "Error interno del servidor" });
+                    } else {
+                      const respuesta = {
+                        procesos: procesosResult,
+                        indicadores: indicadoresResult,
+                      };
+                      res.status(200).json(respuesta);
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    }
+  );
+});
+
+//editar proceso
+app.put("/updateProceso", (req, res) => {
+  const { datos } = req.body;
+  const { datos1, datos2 } = datos;
+  console.log(datos2);
+
+  // Obtener la ID de tipo_proceso
+  db.query(
+    "SELECT idTipo_proceso FROM tipo_proceso WHERE descripcion = ?",
+    [datos1.selectTipoProc],
+    (err, tipoProcesoRows) => {
+      if (err) {
+        console.error("Error al obtener ID de tipo_proceso:", err);
+        res.status(500).send("Error interno del servidor");
+        return;
+      }
+
+      const tipoProcesoId = tipoProcesoRows[0].idTipo_proceso;
+
+      // Actualizar la tabla procesos
+      db.query(
+        "UPDATE procesos SET nombre=?, fecha_entrega=?, total_puntos=?, Tipo_proceso_idTipo_proceso=?, Semestre_idSemestre=? WHERE idProcesos=?",
+        [
+          datos1.nombreProc,
+          datos1.fecha,
+          datos1.totpuntos,
+          tipoProcesoId,
+          datos1.idSemestre,
+          datos1.idProcesos,
+        ],
+        (err, procesosResult) => {
+          if (err) {
+            console.error("Error al actualizar la tabla procesos:", err);
+            res.status(500).send("Error interno del servidor");
+            return;
+          }
+          let completedUpdates = 0;
+          datos2.tablita.forEach((indicador) => {
+            // Obtener la ID de tipo_indicador
+            db.query(
+              "SELECT idTipoIndicador FROM tipo_indicador WHERE Descripcion = ?",
+              [indicador.tipo],
+              (err, tipoIndicadorRows) => {
+                if (err) {
+                  console.error("Error al obtener ID de tipo_indicador:", err);
+                  res.status(500).send("Error interno del servidor");
+                  return;
+                }
+
+                const tipoIndicadorId = tipoIndicadorRows[0].idTipoIndicador;
+
+                // Actualizar el indicador
+                db.query(
+                  "UPDATE indicadores SET descripcion=?, puntos=?, idTipoIndicador=? WHERE idProcesos=? AND idIndicadores=?",
+                  [
+                    indicador.indicador,
+                    indicador.puntos,
+                    tipoIndicadorId,
+                    datos1.idProcesos,
+                    indicador.id
+                  ],
+                  (err) => {
+                    if (err) {
+                      console.error(
+                        "Error al actualizar la tabla indicadores:",
+                        err
+                      );
+                      res.status(500).send("Error interno del servidor");
+                      return;
+                    }
+                    completedUpdates++;
+                    if (completedUpdates === datos2.tablita.length) {
+                      // Todas las actualizaciones de indicadores han sido completadas
+                      res.status(200).send("Actualización exitosa");
+                    }
+                  }
+                );
+              }
+            );
+          });
+        }
+      );
+    }
+  );
 });
 
 app.listen(3000, () => {

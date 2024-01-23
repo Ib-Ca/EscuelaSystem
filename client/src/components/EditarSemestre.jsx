@@ -71,6 +71,7 @@ const EditarSemestre = () => {
   const [info, setInfo] = useState([]);
   const [alumnos, setAlumnos] = useState([]);
   const [alumnosSubmit, setAlumnosSubmit] = useState([]);
+  const [aux, setAux] = useState("");
 
   //fetch semestre a editar y filtrado de secciones para visaul
   useEffect(() => {
@@ -80,6 +81,7 @@ const EditarSemestre = () => {
           `http://localhost:3000/editSemestre/${Nombre}`
         );
         setSemestre(response.data);
+        setAux(response.data[0].Nombre);
         //seccion unica
         const seccionesUnicas = Array.from(
           new Set(response.data.map((item) => item.SeccionDescripcion))
@@ -296,17 +298,10 @@ const EditarSemestre = () => {
   //ver alumnos correspondientes de la seccion
   const handleVerAlumn = (value) => {
     const alumnosFiltrados = alumnos.filter(
-      (alumno) => alumno.Seccion === value
+      (alumno) => alumno.NombreSemestre === aux && alumno.Seccion === value
     );
     if (alumnosFiltrados.length > 0) {
-      const alumnosComoObjetos = alumnosFiltrados.map((alumno) => {
-        const alumnoObjeto = {};
-        Object.keys(alumno).forEach((propiedad) => {
-          alumnoObjeto[propiedad] = alumno[propiedad];
-        });
-        return alumnoObjeto;
-      });
-      setInfo(alumnosComoObjetos);
+      setInfo(alumnosFiltrados);
     }
     openModal3();
     setModalTitle(value);
@@ -335,7 +330,9 @@ const EditarSemestre = () => {
     // si hay alumnos asignados a la sección
     const seccionAsignada = alumnos.some((alumno) => alumno.Seccion === value);
     if (seccionAsignada) {
-      alert("No puede eliminar secciones mientras hayan alumnos asignados a la misma.");
+      alert(
+        "No puede eliminar secciones mientras hayan alumnos asignados a la misma."
+      );
     } else {
       console.log("No hay alumnos con la sección asignada.");
       console.log("Sección: ", value);
@@ -347,11 +344,12 @@ const EditarSemestre = () => {
         })
         .catch(function (error) {
           //console.error("Error al eliminar seccion:", error);
-          alert("Si quiere eliminar la sección, no puede tener nada asignado a la misma");
+          alert(
+            "Si quiere eliminar la sección, no puede tener nada asignado a la misma"
+          );
         });
     }
   };
-  
 
   //LOGS
   //console.log(Nombre);

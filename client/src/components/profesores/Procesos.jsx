@@ -164,6 +164,7 @@ function Procesos({ User }) {
         datos
       );
       clean2();
+      location.reload();
     } catch (error) {
       console.error("Error al enviar los datos:", error);
     }
@@ -289,6 +290,7 @@ function Procesos({ User }) {
         alert("Hubo un error");
       });
   };
+//console.log(semestreInfo);
 
   return User && User.user.username === username ? (
     <>
@@ -508,7 +510,7 @@ function Procesos({ User }) {
                         >
                           Ver Procesos
                         </Button>
-                        <Link to={`/proceso/${item.idSemestre}/${username}`}>
+                        <Link to={`/proceso/${item.idSemestre}/${username}/${item.NombreMateria}`}>
                           <Button variant="info"> Corregir Procesos</Button>
                         </Link>
                       </ButtonGroup>

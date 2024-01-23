@@ -16,6 +16,7 @@ import VerAlumnos from "./components/profesores/verAlumnos.jsx";
 import VerObsProfe from "./components/profesores/verObsProfe.jsx";
 import Procesos from "./components/profesores/Procesos.jsx";
 import ProcesosAsignar from "./components/profesores/ProcesosAsignar.jsx";
+import ProcesoVer from "./components/profesores/ProcesoVer.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -86,10 +87,16 @@ function Index() {
                     User={data}
                   />
                   <Route
-                    path="/proceso/:idSemestre/:username"
+                    path="/proceso/:idSemestre/:username/:materia"
                     element={<ProcesosAsignar User={data} />}
                     User={data}
                   />
+                  <Route
+                    path="/proceso/:idProceso/:username/:IdSemestre/:materia"
+                    element={<ProcesoVer User={data} />}
+                    User={data}
+                  />
+                  
                 </>
               )}
               <Route path="*" element={<Inicio />} />

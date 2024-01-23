@@ -235,8 +235,11 @@ app.post("/createAlumno", (req, res) => {
 
 //obtener alumnos
 app.get("/server/alumnos", (req, res) => {
-  const datos_alumnos =
-    "SELECT *, DATE_FORMAT(Fecha_nacimiento, '%Y-%m-%d') AS Fecha_nacimiento FROM alumnos";
+  const datos_alumnos = `
+    SELECT a.*, s.Nombre AS NombreSemestre, DATE_FORMAT(a.Fecha_nacimiento, '%Y-%m-%d') AS Fecha_nacimiento
+    FROM alumnos a
+    LEFT JOIN semestre s ON a.Semestre_idSemestre = s.idSemestre
+  `;
   db.query(datos_alumnos, (err, result) => {
     if (err) {
       throw err;
@@ -2270,6 +2273,7 @@ app.put("/updateProceso", (req, res) => {
   );
 });
 
+//borrar proceso
 app.delete("/deleteProc/:idAux", (req, res) => {
   const idAux = req.params.idAux;
   const deleteIndicadoresQuery = "DELETE FROM indicadores WHERE idProcesos = ?";
@@ -2301,12 +2305,15 @@ app.get("/server/getProc", (req, res) => {
       "SELECT procesos.*, " +
       "semestre.Nombre AS nombreSemestre, " +
       "materias.Nombre AS nombreMateria, " +
-      "seccion.descripcion AS nombreSeccion " +
+      "seccion.descripcion AS nombreSeccion, " +
+      "tipo_proceso.descripcion AS tipoProcesoDescripcion " +
       "FROM procesos " +
       "JOIN semestre ON procesos.Semestre_idSemestre = semestre.idSemestre " +
       "JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias " +
       "JOIN seccion ON semestre.Seccion_idSeccion = seccion.idSeccion " +
+      "JOIN tipo_proceso ON procesos.Tipo_proceso_idTipo_proceso = tipo_proceso.idTipo_proceso " +
       "WHERE procesos.Semestre_idSemestre = ?";
+
     db.query(selectProcesosQuery, [idSemestre], (error, results) => {
       if (error) {
         console.error("Error al seleccionar procesos:", error);
@@ -2320,6 +2327,96 @@ app.get("/server/getProc", (req, res) => {
   }
 });
 
+//obtener alumno segun semestre
+app.get("/server/getAlumno", (req, res) => {
+  const idSemestre = req.query.idSemestre;
+  const semestreNombre = req.query.semestre;
+  if (semestreNombre) {
+    const selectAlumnosQuery =
+      "SELECT a.*, pa.logrado_puntos, pa.estado, pa.fecha_entregado, p.total_puntos, p.fecha_entrega FROM alumnos a LEFT JOIN procesosxalumno pa ON a.idAlumnos = pa.Alumnos_idAlumnos LEFT JOIN procesos p ON pa.Procesos_idProcesos = p.idProcesos LEFT JOIN semestre s ON a.Semestre_idSemestre = s.idSemestre WHERE s.Nombre = ?";
+    // Modificado: Usar el nombre del semestre en lugar de idSemestre
+    db.query(selectAlumnosQuery, [semestreNombre], (error, results) => {
+      if (error) {
+        console.error("Error al seleccionar alumnos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+        return;
+      }
+      res.json(results);
+    });
+  } else {
+    res.status(400).json({ error: "El parámetro 'semestre' es requerido" });
+  }
+});
+
+
+
+//obtenter lista de indicadores de proceso individual
+app.get("/server/getIndicador", (req, res) => {
+  const idProcesos = req.query.idProcesos;
+  if (!isNaN(idProcesos)) {
+    const selectIndicadoresQuery = `
+      SELECT i.*, ti.Descripcion AS TipoIndicadorDescripcion
+      FROM indicadores i
+      LEFT JOIN tipo_indicador ti ON i.idTipoIndicador = ti.idTipoIndicador
+      WHERE i.idProcesos = ?;
+    `;
+    db.query(selectIndicadoresQuery, [idProcesos], (error, results) => {
+      if (error) {
+        console.error("Error al seleccionar indicadores:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+        return;
+      }
+      res.json(results);
+    });
+  } else {
+    res.status(400).json({ error: "El parámetro no es un número válido" });
+  }
+});
+
+//guardar proceso hecho por el alumno
+app.post("/procesoXalumno", (req, res) => {
+  const { idProceso, idAlumno, logrado, entregado, estado } = req.body;
+  if (
+    !idProceso ||
+    !idAlumno ||
+    logrado === undefined ||
+    estado === undefined
+  ) {
+    return res.status(400).json({ error: "Datos incompletos" });
+  }
+  const insertQuery =
+    "INSERT INTO procesosxalumno (Procesos_idProcesos, Alumnos_idAlumnos, logrado_puntos, estado, fecha_entregado) VALUES (?, ?, ?, ?, ?)";
+  db.query(
+    insertQuery,
+    [idProceso, idAlumno, logrado, estado, entregado],
+    (error, results) => {
+      if (error) {
+        console.error("Error al insertar en procesosxalumno:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+      }
+      res.json({ success: true });
+    }
+  );
+});
+
+//editar proceso hecho por alumno:
+app.put("/procesoXalumno/:idProceso/:idAlumno", (req, res) => {
+  const { idProceso, idAlumno } = req.params;
+  const { logrado, entregado, estado } = req.body;
+  const updateQuery =
+    "UPDATE procesosxalumno SET logrado_puntos = ?, estado = ?, fecha_entregado = ? WHERE Procesos_idProcesos = ? AND Alumnos_idAlumnos = ?";
+  db.query(
+    updateQuery,
+    [logrado, estado, entregado, idProceso, idAlumno],
+    (error, results) => {
+      if (error) {
+        console.error("Error al actualizar en procesosxalumno:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+      }
+      res.json({ success: true });
+    }
+  );
+});
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

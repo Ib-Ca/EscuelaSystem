@@ -1,6 +1,11 @@
 import Axios from "axios";
 import React, { useEffect, useState } from "react";
+import Container from "react-bootstrap/esm/Container";
 import { useNavigate, useParams } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import Table from "react-bootstrap/esm/Table";
+import ButtonGroup from "react-bootstrap/esm/ButtonGroup";
 
 function ProcesosAsignar({ User }) {
   const { idSemestre, username } = useParams();
@@ -29,7 +34,7 @@ function ProcesosAsignar({ User }) {
     };
     fetchData();
   }, []);
-console.log(procesosLista);
+  console.log(procesosLista);
   useEffect(() => {
     if (!(User && User.user.username === username)) {
       navigate("/home");
@@ -38,7 +43,50 @@ console.log(procesosLista);
 
   return User && User.user.username === username ? (
     <>
-      <div>hola</div>
+      <Container>
+        <Card>
+          <Card.Header as="h4">Procesos----Correciones</Card.Header>
+          <Card.Body>
+            <Card.Title>Special title treatment</Card.Title>
+            <Card.Text>
+              With supporting text below as a natural lead-in to additional
+              content.
+            </Card.Text>
+            <Button variant="primary">Go somewhere</Button>
+          </Card.Body>
+        </Card>
+        <Table bordered hover>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Proceso</th>
+              <th>Materia</th>
+              <th>Sección</th>
+              <th>Semestre</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {procesosLista.map((item, idx) => {
+              return (
+                <tr key={idx}>
+                  <td>{idx}</td>
+                  <td>{item.nombre}</td>
+                  <td>{item.nombreMateria}</td>
+                  <td>{item.nombreSeccion}</td>
+                  <td>{item.nombreSemestre}</td>
+                  <td>
+                    <ButtonGroup aria-label="Basic example">
+                      <Button variant="secondary">Left</Button>
+                      <Button variant="secondary">Middle</Button>
+                    </ButtonGroup>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      </Container>
     </>
   ) : null;
 }

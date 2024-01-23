@@ -2298,7 +2298,15 @@ app.get("/server/getProc", (req, res) => {
   const idSemestre = req.query.idSemestre;
   if (!isNaN(idSemestre)) {
     const selectProcesosQuery =
-      "SELECT * FROM procesos WHERE Semestre_idSemestre = ?";
+      "SELECT procesos.*, " +
+      "semestre.Nombre AS nombreSemestre, " +
+      "materias.Nombre AS nombreMateria, " +
+      "seccion.descripcion AS nombreSeccion " +
+      "FROM procesos " +
+      "JOIN semestre ON procesos.Semestre_idSemestre = semestre.idSemestre " +
+      "JOIN materias ON semestre.Materias_idMaterias = materias.idMaterias " +
+      "JOIN seccion ON semestre.Seccion_idSeccion = seccion.idSeccion " +
+      "WHERE procesos.Semestre_idSemestre = ?";
     db.query(selectProcesosQuery, [idSemestre], (error, results) => {
       if (error) {
         console.error("Error al seleccionar procesos:", error);
@@ -2308,11 +2316,10 @@ app.get("/server/getProc", (req, res) => {
       res.json(results);
     });
   } else {
-    res
-      .status(400)
-      .json({ error: "El parámetro no es un número válido" });
+    res.status(400).json({ error: "El parámetro no es un número válido" });
   }
 });
+
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

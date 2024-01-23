@@ -54,7 +54,10 @@ function Procesos({ User }) {
         const tipoProcesoResponse = await Axios.get(
           "http://localhost:3000/getTipoProceso"
         );
-        
+        const indicadoresData = indicadoresResponse.data;
+        const tipoProcesoData = tipoProcesoResponse.data;
+        setIndicadores(indicadoresResponse.data);
+        setTipoProceso(tipoProcesoResponse.data);
         if (tipoProcesoData.length > 0) {
           setSelectTipoProc(tipoProcesoData[0].descripcion);
         }

@@ -29,7 +29,7 @@ function ProcesosAsignar({ User }) {
     };
     fetchData();
   }, []);
-
+console.log(procesosLista);
   useEffect(() => {
     if (!(User && User.user.username === username)) {
       navigate("/home");

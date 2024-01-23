@@ -1,7 +1,7 @@
 import Axios from "axios";
 import React, { useEffect, useState } from "react";
 import Container from "react-bootstrap/esm/Container";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/esm/Table";
@@ -20,12 +20,6 @@ function ProcesosAsignar({ User }) {
     setShow(false);
   };
   const handleShow = () => setShow(true);
-  const [show2, setShow2] = useState(false);
-  const handleClose2 = () => setShow2(false);
-  const handleShow2 = () => {
-    setShow2(true);
-    fetchAlumnos();
-  };
 
   //////////////////////////////////////////////////////////
 
@@ -129,29 +123,18 @@ function ProcesosAsignar({ User }) {
     setIndex(idx);
   };
   //cargar datos de proceso a ser corregido
-  const corregir = (
-    idProcesos,
-    Semestre_idSemestre,
-    Tipo_proceso_idTipo_proceso,
-    fecha_entrega,
-    nombre,
-    nombreMateria,
-    nombreSeccion,
-    nombreSemestre,
-    total_puntos,
-    tipoProcesoDescripcion
-  ) => {
-    setIdAux(idProcesos);
-    setIdAux2(Semestre_idSemestre);
-    setFecha(fecha_entrega);
-    setNombreProc(nombre);
-    setMaterias(nombreMateria);
-    setSemestre(nombreSemestre);
-    setSeccion(nombreSeccion);
-    setTotpuntos(total_puntos);
-    setSelectTipoProc(tipoProcesoDescripcion);
-    setFechaEntr(fecha_entrega);
-    setPuntosCons(total_puntos);
+  const corregir = (item) => {
+    setIdAux(item.idProcesos);
+    setIdAux2(item.Semestre_idSemestre);
+    setFecha(item.fecha_entrega);
+    setNombreProc(item.nombre);
+    setMaterias(item.nombreMateria);
+    setSemestre(item.nombreSemestre);
+    setSeccion(item.nombreSeccion);
+    setTotpuntos(item.total_puntos);
+    setSelectTipoProc(item.tipoProcesoDescripcion);
+    setFechaEntr(item.fecha_entrega);
+    setPuntosCons(item.total_puntos);
     fetchAlumnos();
     handleShow();
   };
@@ -159,13 +142,11 @@ function ProcesosAsignar({ User }) {
   //obtener datos de alumno para ser corregido
   const fetchAlumnos = async () => {
     try {
-      if (IdAux2 && auxi) {
-       // console.log(auxi);
+      if (auxi) {
         const alumnos = await Axios.get(
-          `http://localhost:3000/server/getAlumno?idSemestre=${IdAux2}&semestre=${auxi}`
+          `http://localhost:3000/server/obtenerAlumno?semestre=${auxi}`
         );
         setAlumnosLista(alumnos.data);
-        //console.log(alumnos.data);
       } else {
         //console.error("IdAux2 o auxi no tienen valores válidos");
       }
@@ -177,7 +158,7 @@ function ProcesosAsignar({ User }) {
   // useEffect para obtener datos de procesos al montar el componente
   useEffect(() => {
     fetchAlumnos();
-  }, [IdAux2]);
+  }, [materia]);
 
   //obtener datos de indicadores para ser corregido
   const fetchIndicadores = async () => {
@@ -268,12 +249,10 @@ function ProcesosAsignar({ User }) {
     clean2();
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "numeric", day: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
+  const [alumnosProcesados, setAlumnosProcesados] = useState(new Set());
+
   //console.log(procesosLista);
-  console.log(alumnosLista);
+  //console.log(alumnosLista);
   //console.log("id: ", IdAux2);
   //console.log(indicadorLista);
   return User && User.user.username === username ? (
@@ -503,30 +482,14 @@ function ProcesosAsignar({ User }) {
                   <td>
                     {!editar ? (
                       <ButtonGroup>
-                        <Button
-                          onClick={(e) =>
-                            corregir(
-                              item.idProcesos,
-                              item.Semestre_idSemestre,
-                              item.Tipo_proceso_idTipo_proceso,
-                              item.fecha_entrega,
-                              item.nombre,
-                              item.nombreMateria,
-                              item.nombreSeccion,
-                              item.nombreSemestre,
-                              item.total_puntos,
-                              item.tipoProcesoDescripcion
-                            )
-                          }
-                        >
+                        <Button onClick={(e) => corregir(item)}>
                           Corregir
                         </Button>
-                        <Button
-                          variant="info"
-                          onClick={(e) => handleShow2(item.idProceso)}
+                        <Link
+                          to={`/proceso/${item.idProcesos}/${username}/${item.Semestre_idSemestre}/${item.nombreMateria}`}
                         >
-                          Ver Entregado
-                        </Button>
+                          <Button variant="info"> Ver Entregados</Button>
+                        </Link>
                       </ButtonGroup>
                     ) : null}
                   </td>
@@ -546,84 +509,38 @@ function ProcesosAsignar({ User }) {
                 <th>Nombre</th>
                 <th>Apellido</th>
                 <th>Documento</th>
-                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {alumnosLista.map((item, idx) => {
-                return (
-                  <tr key={idx}>
-                    <td>{idx}</td>
-                    <td>{item.Nombre}</td>
-                    <td>{item.Apellido}</td>
-                    <td>{item.Numero_docu}</td>
-                    <td>{item.estado || "No entregado"}</td>
-                    <td>
-                      <Button
-                        onClick={() =>
-                          fillAlumno(
-                            item.Nombre,
-                            item.Apellido,
-                            item.idAlumnos,
-                            item.estado
-                          )
-                        }
-                      >
-                        Corregir
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal show={show2} size="lg" onHide={handleClose2}>
-        <Modal.Header closeButton>
-          <Modal.Title>Entregados</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Documento</th>
-                <th>Obtenido</th>
-                <th>Total</th>
-                <th>Entregada</th>
-                <th>Fecha Límite</th>
-              </tr>
-            </thead>
-            <tbody>
               {alumnosLista
-                .filter((item) => item.Semestre_idSemestre === IdAux2)
-                .filter((item) => item.estado === "Entregado")
+                .filter(
+                  (alumno, index, self) =>
+                    index ===
+                    self.findIndex((a) => a.idAlumnos === alumno.idAlumnos)
+                )
                 .map((item, idx) => (
                   <tr key={idx}>
                     <td>{idx}</td>
                     <td>{item.Nombre}</td>
                     <td>{item.Apellido}</td>
                     <td>{item.Numero_docu}</td>
-                    <td>{item.logrado_puntos}</td>
-                    <td>{item.total_puntos}</td>
-                    <td>{formatDate(item.fecha_entregado)}</td>
-                    <td>{formatDate(item.fecha_entrega)}</td>
+                    <td>
+                      <Button
+                        onClick={() =>
+                          fillAlumno(item.Nombre, item.Apellido, item.idAlumnos)
+                        }
+                      >
+                        Corregir
+                      </Button>
+                    </td>
                   </tr>
                 ))}
             </tbody>
           </Table>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose2}>
+          <Button variant="secondary" onClick={handleClose}>
             Cerrar
           </Button>
         </Modal.Footer>

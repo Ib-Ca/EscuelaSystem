@@ -2327,14 +2327,34 @@ app.get("/server/getProc", (req, res) => {
   }
 });
 
-//obtener alumno segun semestre
+//obtener alumno segun semestre USAR ALGUN DIA
 app.get("/server/getAlumno", (req, res) => {
   const idSemestre = req.query.idSemestre;
+  if (!isNaN(idSemestre)) {
+    const selectAlumnosQuery =
+      "SELECT a.*, pa.logrado_puntos, pa.estado, pa.fecha_entregado, p.total_puntos, p.fecha_entrega FROM alumnos a LEFT JOIN procesosxalumno pa ON a.idAlumnos = pa.Alumnos_idAlumnos LEFT JOIN procesos p ON pa.Procesos_idProcesos = p.idProcesos WHERE a.Semestre_idSemestre = ?";
+    db.query(selectAlumnosQuery, [idSemestre], (error, results) => {
+      if (error) {
+        console.error("Error al seleccionar alumnos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+        return;
+      }
+      res.json(results);
+    });
+  } else {
+    res
+      .status(400)
+      .json({ error: "El parámetro 'idSemestre' no es un número válido" });
+  }
+});
+
+//por el amor de Dios
+app.get("/server/obtenerAlumno", (req, res) => {
   const semestreNombre = req.query.semestre;
   if (semestreNombre) {
     const selectAlumnosQuery =
       "SELECT a.*, pa.logrado_puntos, pa.estado, pa.fecha_entregado, p.total_puntos, p.fecha_entrega FROM alumnos a LEFT JOIN procesosxalumno pa ON a.idAlumnos = pa.Alumnos_idAlumnos LEFT JOIN procesos p ON pa.Procesos_idProcesos = p.idProcesos LEFT JOIN semestre s ON a.Semestre_idSemestre = s.idSemestre WHERE s.Nombre = ?";
-    // Modificado: Usar el nombre del semestre en lugar de idSemestre
+
     db.query(selectAlumnosQuery, [semestreNombre], (error, results) => {
       if (error) {
         console.error("Error al seleccionar alumnos:", error);
@@ -2347,8 +2367,6 @@ app.get("/server/getAlumno", (req, res) => {
     res.status(400).json({ error: "El parámetro 'semestre' es requerido" });
   }
 });
-
-
 
 //obtenter lista de indicadores de proceso individual
 app.get("/server/getIndicador", (req, res) => {
@@ -2416,6 +2434,36 @@ app.put("/procesoXalumno/:idProceso/:idAlumno", (req, res) => {
       res.json({ success: true });
     }
   );
+});
+
+app.get("/server/procesoxalumno/:idProceso", (req, res) => {
+  const idProceso = req.params.idProceso;
+
+  const selectProcesosAlumnoQuery =
+    "SELECT " +
+    "a.Nombre AS alumnoNombre, " +
+    "a.Apellido AS alumnoApellido, " +
+    "a.Seccion AS alumnoSeccion, " +
+    "a.Numero_docu AS alumnoNumeroDocumento, " +
+    "pa.*, " +
+    "p.nombre AS procesoNombre, " +
+    "p.fecha_entrega AS procesoFechaEntrega, " +
+    "p.total_puntos AS procesoTotalPuntos, " +
+    "tp.descripcion AS tipoProcesoDescripcion " +
+    "FROM procesosxalumno pa " +
+    "INNER JOIN alumnos a ON pa.Alumnos_idAlumnos = a.idAlumnos " +
+    "INNER JOIN procesos p ON pa.Procesos_idProcesos = p.idProcesos " +
+    "INNER JOIN tipo_proceso tp ON p.Tipo_proceso_idTipo_proceso = tp.idTipo_proceso " +
+    "WHERE pa.Procesos_idProcesos = ?";
+
+  db.query(selectProcesosAlumnoQuery, [idProceso], (error, results) => {
+    if (error) {
+      console.error("Error al seleccionar procesosxalumno:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+      return;
+    }
+    res.json(results);
+  });
 });
 
 app.listen(3000, () => {

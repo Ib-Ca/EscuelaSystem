@@ -15,6 +15,7 @@ import Allhorario from "./Allhorario.jsx";
 import VerAlumnos from "./components/profesores/verAlumnos.jsx";
 import VerObsProfe from "./components/profesores/verObsProfe.jsx";
 import Procesos from "./components/profesores/Procesos.jsx";
+import ProcesosAsignar from "./components/profesores/ProcesosAsignar.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -82,6 +83,11 @@ function Index() {
                   <Route
                     path="/profesor/procesos/:username"
                     element={<Procesos User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/proceso/:idSemestre/:username"
+                    element={<ProcesosAsignar User={data} />}
                     User={data}
                   />
                 </>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -38,7 +38,6 @@ function Procesos({ User }) {
   const [aux, setAux] = useState([]);
   const [idAux, setIdAux] = useState("");
   const [idAux2, setIdAux2] = useState("");
-  const [idAux3, setIdAux3] = useState("");
   //check url y user log
   useEffect(() => {
     if (!(User && User.user.username === username)) {
@@ -55,10 +54,7 @@ function Procesos({ User }) {
         const tipoProcesoResponse = await Axios.get(
           "http://localhost:3000/getTipoProceso"
         );
-        const indicadoresData = indicadoresResponse.data;
-        const tipoProcesoData = tipoProcesoResponse.data;
-        setIndicadores(indicadoresResponse.data);
-        setTipoProceso(tipoProcesoResponse.data);
+        
         if (tipoProcesoData.length > 0) {
           setSelectTipoProc(tipoProcesoData[0].descripcion);
         }
@@ -278,7 +274,19 @@ function Procesos({ User }) {
       console.error("Error al enviar los datos:", error);
     }
   };
-  //console.log("dsjkapodas: ", semestreInfo);
+
+  //borrar proceso
+  const Borrar = () => {
+    Axios.delete(`http://localhost:3000/deleteProc/${idAux}`)
+      .then((response) => {
+        location.reload();
+      })
+      .catch((error) => {
+        console.error("Error al intentar borrar el elemento:", error);
+        alert("Hubo un error");
+      });
+  };
+
   return User && User.user.username === username ? (
     <>
       <Container>
@@ -406,7 +414,9 @@ function Procesos({ User }) {
                   >
                     Cancelar
                   </Button>
-                  <Button variant="danger">Eliminar</Button>
+                  <Button variant="danger" onClick={Borrar}>
+                    Eliminar
+                  </Button>
                 </>
               )}
               <div style={{ paddingTop: "16px" }}>
@@ -495,18 +505,9 @@ function Procesos({ User }) {
                         >
                           Ver Procesos
                         </Button>
-                        <Button
-                          variant="info"
-                          onClick={() =>
-                            handleVer(
-                              item.idProfesor,
-                              item.idMateria,
-                              item.nombreMateria
-                            )
-                          }
-                        >
-                          Corregir Procesos
-                        </Button>
+                        <Link to={`/proceso/${item.idSemestre}/${username}`}>
+                          <Button variant="info"> Corregir Procesos</Button>
+                        </Link>
                       </ButtonGroup>
                     )}
                   </td>

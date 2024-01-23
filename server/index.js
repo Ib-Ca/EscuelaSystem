@@ -2243,7 +2243,7 @@ app.put("/updateProceso", (req, res) => {
                     indicador.puntos,
                     tipoIndicadorId,
                     datos1.idProcesos,
-                    indicador.id
+                    indicador.id,
                   ],
                   (err) => {
                     if (err) {
@@ -2268,6 +2268,50 @@ app.put("/updateProceso", (req, res) => {
       );
     }
   );
+});
+
+app.delete("/deleteProc/:idAux", (req, res) => {
+  const idAux = req.params.idAux;
+  const deleteIndicadoresQuery = "DELETE FROM indicadores WHERE idProcesos = ?";
+  db.query(deleteIndicadoresQuery, [idAux], (error, result) => {
+    if (error) {
+      console.error("Error al borrar indicadores:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+      return;
+    }
+    const deleteProcesoQuery = "DELETE FROM procesos WHERE idProcesos = ?";
+    db.query(deleteProcesoQuery, [idAux], (error, result) => {
+      if (error) {
+        console.error("Error al borrar el proceso:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+        return;
+      }
+      res
+        .status(200)
+        .json({ message: "Proceso y sus indicadores borrados con éxito" });
+    });
+  });
+});
+
+//procesos pero mas facil
+app.get("/server/getProc", (req, res) => {
+  const idSemestre = req.query.idSemestre;
+  if (!isNaN(idSemestre)) {
+    const selectProcesosQuery =
+      "SELECT * FROM procesos WHERE Semestre_idSemestre = ?";
+    db.query(selectProcesosQuery, [idSemestre], (error, results) => {
+      if (error) {
+        console.error("Error al seleccionar procesos:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+        return;
+      }
+      res.json(results);
+    });
+  } else {
+    res
+      .status(400)
+      .json({ error: "El parámetro no es un número válido" });
+  }
 });
 
 app.listen(3000, () => {

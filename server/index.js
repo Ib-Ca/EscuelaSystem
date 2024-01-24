@@ -51,7 +51,7 @@ db.connect(function (err) {
 function Auditoria(idUsuario, tabla, cambio, datos_anteriores) {
   const fechaActual = new Date().toISOString().slice(0, 10);
 
-/*  console.log("realizo el cambio: ", idUsuario);
+  /*  console.log("realizo el cambio: ", idUsuario);
   console.log(" el cambio: ", cambio);
   console.log("en: ", tabla);
   console.log("anterior", datos_anteriores);
@@ -469,7 +469,7 @@ app.delete("/deleteAlumno/:idAlumno/:idUsuario", (req, res) => {
     }
 
     // Almacena los datos anteriores en un objeto
-    const datosAnteriores = resultados[0]        
+    const datosAnteriores = resultados[0];
 
     // Elimina el usuario primero para evitar errores de clave externa
     const deleteUsuarioQuery =
@@ -552,7 +552,7 @@ app.put("/updateMateria", (req, res) => {
       console.log(err);
       return res.status(500).send("Error al obtener datos anteriores");
     }
-    const datosAnteriores =  result[0];
+    const datosAnteriores = result[0];
     const actualizarMateriaQuery =
       "UPDATE materias SET Nombre=?, Carga_horaria=? WHERE idMaterias=?";
     db.query(
@@ -868,7 +868,9 @@ app.put("/updateProfe", (req, res) => {
                     console.log("id docu: ", idTipodocu);
                     //console.log("nombre docutipo: ", nombredocu);
                   } else {
-                    console.log("no se encontro coincidencia en tipo documento");
+                    console.log(
+                      "no se encontro coincidencia en tipo documento"
+                    );
                   }
                 }
                 //query estado civil id
@@ -914,8 +916,15 @@ app.put("/updateProfe", (req, res) => {
                         } else {
                           const tabla = "Profesor";
                           const cambio = "Actualización";
-                          Auditoria(idUsuario, tabla, cambio, JSON.stringify(datosAnteriores));
-                          console.log("El profesor se ha actualizado con éxito");
+                          Auditoria(
+                            idUsuario,
+                            tabla,
+                            cambio,
+                            JSON.stringify(datosAnteriores)
+                          );
+                          console.log(
+                            "El profesor se ha actualizado con éxito"
+                          );
                           return res
                             .status(200)
                             .send("Profesor actualizado con éxito");
@@ -2914,6 +2923,22 @@ app.get("/asistenciasnomas/:idAlumnos", (req, res) => {
     }
 
     res.json(resultados);
+  });
+});
+
+//obtener historial
+app.get("/server/historial", (req, res) => {
+  const query = `
+    SELECT historial.*, usuario.username
+    FROM historial
+    JOIN usuario ON historial.usuario_idusuario = usuario.idusuario;
+  `;
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error al obtener el historial con usuarios");
+    }
+    return res.status(200).json(result);
   });
 });
 

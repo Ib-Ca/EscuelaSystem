@@ -47,6 +47,11 @@ export default function NavbarDefault({ User }) {
                   href={`/usuarios/${User && User.user && User.user.username}`}
                 >
                   Usuarios
+                </NavDropdown.Item>{" "}
+                <NavDropdown.Item
+                  href={`/historial/${User && User.user && User.user.username}`}
+                >
+                  Historial
                 </NavDropdown.Item>
               </NavDropdown>
             )}
@@ -90,7 +95,13 @@ export default function NavbarDefault({ User }) {
                 >
                   Ver Observaciones
                 </NavDropdown.Item>
-                <NavDropdown.Item href={`/alumno/materias/${User && User.user && User.user.username}`}>Ver Materias</NavDropdown.Item>
+                <NavDropdown.Item
+                  href={`/alumno/materias/${
+                    User && User.user && User.user.username
+                  }`}
+                >
+                  Ver Materias
+                </NavDropdown.Item>
               </NavDropdown>
             )}
           </Nav>

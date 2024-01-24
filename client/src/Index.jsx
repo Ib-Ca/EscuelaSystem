@@ -25,6 +25,7 @@ import VerObservaciones from "./components/alumnos/VerObservaciones.jsx";
 import VerMaterias from "./components/alumnos/VerMaterias.jsx";
 import CheckProcesos from "./components/alumnos/CheckProcesos.jsx";
 import Presentes from "./components/alumnos/Presentes.jsx";
+import Historial from "./components/Historial.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -62,9 +63,18 @@ function Index() {
               <Route path="/home" User={data} element={<Inicio />} />
               {data.user && data.user.rol === 1 && (
                 <>
-                  <Route path="/alumnoAdd" element={<FormularioAñadir User={data}/>} />
-                  <Route path="/materiaAdd" element={<Materias User={data}/>} />
-                  <Route path="/profesorAdd" element={<ProfesoresForm User={data}/>} />
+                  <Route
+                    path="/alumnoAdd"
+                    element={<FormularioAñadir User={data} />}
+                  />
+                  <Route
+                    path="/materiaAdd"
+                    element={<Materias User={data} />}
+                  />
+                  <Route
+                    path="/profesorAdd"
+                    element={<ProfesoresForm User={data} />}
+                  />
                   <Route path="/semestreCreate" element={<CrearSemestre />} />
                   <Route
                     path="/semestreEdit/:Nombre"
@@ -78,6 +88,10 @@ function Index() {
                   <Route
                     path="/usuarios/:username"
                     element={<UsuarioLista User={data} />}
+                  />{" "}
+                  <Route
+                    path="/historial/:username"
+                    element={<Historial User={data} />}
                   />
                 </>
               )}

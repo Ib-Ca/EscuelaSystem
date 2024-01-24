@@ -90,8 +90,7 @@ export default function NavbarDefault({ User }) {
                 >
                   Ver Observaciones
                 </NavDropdown.Item>
-                <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
-                <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
+                <NavDropdown.Item href={`/alumno/materias/${User && User.user && User.user.username}`}>Ver Materias</NavDropdown.Item>
               </NavDropdown>
             )}
           </Nav>

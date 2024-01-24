@@ -2645,6 +2645,65 @@ app.get("/server/Assists/:idHorario", (req, res) => {
   });
 });
 
+//get semestre para mostara a alumno
+app.get("/getSemestreAl/:idAlumnos", (req, res) => {
+  const idAlumno = req.params.idAlumnos;
+
+  const obtenerNombreSemestreQuery = `
+    SELECT semestre.Nombre AS NombreSemestre
+    FROM alumnos
+    JOIN semestre ON alumnos.Semestre_idSemestre = semestre.idSemestre
+    WHERE alumnos.idAlumnos = ?;
+  `;
+  let nombreSemestre = "";
+  db.query(obtenerNombreSemestreQuery, [idAlumno], (error, results) => {
+    if (!error && results.length > 0) {
+      nombreSemestre = results[0].NombreSemestre;
+    }
+    return res.status(200).json({
+      success: !error,
+      nombreSemestre: nombreSemestre,
+    });
+  });
+});
+
+///dñoaskdoñlkasjpodjs´paoidjopias
+app.get("/porFavorSemestre/:Nombre", (req, res) => {
+  const Nombre = req.params.Nombre;
+  const data = `
+    SELECT s.idSemestre, s.Nombre, seccion.descripcion AS DescripcionSeccion, materias.Nombre AS NombreMateria
+    FROM semestre s
+    LEFT JOIN seccion ON s.Seccion_idSeccion = seccion.idSeccion
+    LEFT JOIN materias ON s.Materias_idMaterias = materias.idMaterias
+    WHERE s.Nombre = ?;
+  `;
+  db.query(data, [Nombre], (err, result) => {
+    if (err) {
+      throw err;
+    }
+    res.json(result);
+  });
+});
+
+app.get("/alumno/proceso/:idSemestre", (req, res) => {
+  const idSemestre = req.params.idSemestre;
+
+  const obtenerDatosQuery = `
+    SELECT p.*, pxalumno.*
+    FROM procesos p
+    LEFT JOIN procesosxalumno pxalumno ON p.idProcesos = pxalumno.Procesos_idProcesos
+    WHERE p.Semestre_idSemestre = ?;
+  `;
+
+  db.query(obtenerDatosQuery, [idSemestre], (err, resultados) => {
+    if (err) {
+      throw err;
+    }
+
+    res.json(resultados);
+  });
+});
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

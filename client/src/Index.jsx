@@ -22,6 +22,8 @@ import Asistencias from "./components/profesores/Asistencias.jsx";
 import TomarAsistencia from "./components/profesores/TomarAsistencia.jsx";
 import VerAsistencias from "./components/profesores/VerAsistencias.jsx";
 import VerObservaciones from "./components/alumnos/VerObservaciones.jsx";
+import VerMaterias from "./components/alumnos/VerMaterias.jsx";
+import CheckProcesos from "./components/alumnos/CheckProcesos.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -122,11 +124,21 @@ function Index() {
                   />
                 </>
               )}
-               {data && (data.user.rol === 1 || data.user.rol === 3) && (
+              {data && (data.user.rol === 1 || data.user.rol === 3) && (
                 <>
                   <Route
                     path="/alumno/:username"
                     element={<VerObservaciones User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/alumno/materias/:username"
+                    element={<VerMaterias User={data} />}
+                    User={data}
+                  />{" "}
+                  <Route
+                    path="/alumno/procesos/:username/:idSemestre"
+                    element={<CheckProcesos User={data} />}
                     User={data}
                   />
                 </>

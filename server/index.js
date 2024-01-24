@@ -3029,6 +3029,43 @@ app.get('/alumnos/:idAlumno', (req, res) => {
   });
 });
 
+//profesor
+app.get('/todosProfes/:idProfesores', (req, res) => {
+  const idProfesores = req.params.idProfesores;
+  const consulta = `
+    SELECT 
+      p.idProfesores,
+      p.Nombre,
+      p.Apellido,
+      p.Correo,
+      p.Numero_telefono,
+      p.Numero_docu,
+      p.Estado_civil_idEstado_civil,
+      ec.Descripcion AS EstadoCivilDescripcion,
+      d.Tipo_docu AS TipoDocumento,
+      n.Descripcion AS NacionalidadDescripcion,
+      p.usuario_idusuario
+    FROM profesores p
+    JOIN estado_civil ec ON p.Estado_civil_idEstado_civil = ec.idEstado_civil
+    JOIN documento d ON p.Documento_idDocumento = d.idDocumento
+    JOIN nacionalidad n ON p.Nacionalidad_idNacionalidad = n.idNacionalidad
+    WHERE p.idProfesores = ?;
+  `;
+  
+  db.query(consulta, [idProfesores], (error, resultados) => {
+    if (error) {
+      console.error(error);
+      res.status(500).send('Error al recuperar datos del profesor.');
+    } else {
+      const profesor = resultados[0];
+      res.json(profesor);
+    }
+  });
+});
+
+
+
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

@@ -6,9 +6,8 @@ import  Axios  from "axios";
 
 function InfoAlumnos({ User }) {
   const { username, idProfesores } = useParams();
-  const [alumnosLista, setAlumnosLista] = useState([]);
+  const [profesorLista, setProfesorLista] = useState([]);
   const navigate = useNavigate();
-  console.log(idProfesores);
   //check url y user log
   useEffect(() => {
     if (!(User && User.user.username === username)) {
@@ -17,26 +16,32 @@ function InfoAlumnos({ User }) {
   }, [User, username, navigate]);
 
   useEffect(() => {
-    const fetchAlumnos = async () => {
+    const fetchProfe = async () => {
       try {
         const response = await Axios.get(
           `http://localhost:3000/todosProfes/${idProfesores}`
         );
-        setAlumnosLista(response.data);
+        setProfesorLista(response.data);
       } catch (error) {
         console.error("Error al obtener datos:", error);
       }
     };
 
-    fetchAlumnos();
+    fetchProfe();
   }, []);
 
   return User && User.user.username === username ? (
     <Container>
-      <Card>
-        <Card.Header as="h3">Detalles Alumno: </Card.Header>
-      <Card.Body>
- 
+      <Card>  
+        <Card.Header as="h3">Detalles Profesor: </Card.Header>
+        <Card.Body>
+          <p><strong>Nombre:</strong> {profesorLista.Nombre}</p>
+          <p><strong>Apellido:</strong> {profesorLista.Apellido}</p>
+          <p><strong>Correo:</strong> {profesorLista.Correo}</p>
+          <p><strong>Documento:</strong> {profesorLista.TipoDocumento} - {profesorLista.Numero_docu}</p>
+          <p><strong>Estado Civil:</strong> {profesorLista.EstadoCivilDescripcion}</p>
+          <p><strong>Nacionalidad:</strong> {profesorLista.NacionalidadDescripcion}</p>
+          <p><strong>Número de Teléfono:</strong> {profesorLista.Numero_telefono}</p>
       </Card.Body>
     </Card>
     </Container>

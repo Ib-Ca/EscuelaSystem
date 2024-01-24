@@ -47,6 +47,33 @@ db.connect(function (err) {
   }
 });
 
+//////////////////////auditoria
+function Auditoria(idUsuario, tabla, cambio, datos_anteriores) {
+  const fechaActual = new Date().toISOString().slice(0, 10);
+
+  console.log("realizo el cambio: ", idUsuario);
+  console.log(" el cambio: ", cambio);
+  console.log("en: ", tabla);
+  console.log("anterior", datos_anteriores);
+  console.log("en fecha: ", fechaActual);
+  const insertQuery = `
+    INSERT INTO historial (fecha, donde, tipo_cambio, datos_anteriores, usuario_idusuario)
+    VALUES (?, ?, ?, ?, ?);
+  `;
+  // Aquí debes usar tu conexión a la base de datos para ejecutar la consulta
+  db.query(
+    insertQuery,
+    [fechaActual, tabla, cambio, datos_anteriores, idUsuario],
+    (err, result) => {
+      if (err) {
+        console.error("Error al insertar en historial:", err);
+      } else {
+        console.log("Registro en historial insertado con éxito.");
+      }
+    }
+  );
+}
+
 //obtener movilidadeds
 app.get("/server/movilidad", (req, res) => {
   const datos_movilidad = "SELECT * FROM movilidad";
@@ -106,6 +133,7 @@ app.post("/createAlumno", (req, res) => {
   const tipo_movi = req.body.tipo_movi;
   const tiempo = req.body.tiempo;
   const distancia = req.body.distancia;
+  const idUsuario = req.body.idUsuario;
   let idCivil;
   let idTipodocu;
   let idPais;
@@ -214,6 +242,11 @@ app.post("/createAlumno", (req, res) => {
                       } else {
                         const idAlumno = result.insertId;
                         console.log("El id del alumno es: ", idAlumno);
+                        const tabla = "Alumnos";
+                        const cambio = "Creación";
+                        const datos_anteriores = "";
+                        Auditoria(idUsuario, tabla, cambio, datos_anteriores);
+
                         return res.status(200).json({
                           message: "Alumno registrado con éxito",
                           alumnoCreado: true,
@@ -264,150 +297,209 @@ app.put("/updateAlumno", (req, res) => {
   const tipo_movi = req.body.tipo_movi;
   const tiempo = req.body.tiempo;
   const distancia = req.body.distancia;
+  const idUsuario = req.body.idUsuario;
   let idCivil;
   let idTipodocu;
   let idPais;
   let idMovilidad;
   let idestado = 1;
-  console.log("civil es: ", civil);
-  //query movilidad insert e id
+
   db.query(
-    "SELECT  idMovilidad FROM movilidad WHERE idMovilidad=?",
-    [tipo_movi],
-    function (err, result) {
+    "SELECT * FROM alumnos WHERE idAlumnos = ?",
+    [idAlumno],
+    function (err, resultAnterior) {
       if (err) {
         console.log(err);
-        return res.status(500).send("Error en movilidades");
+        return res
+          .status(500)
+          .send("Error al obtener datos anteriores del alumno");
       } else {
-        if (result && result.length > 0) {
-          idMovilidad = result[0].idMovilidad;
-          //const nombre = result[0].Descripcion;
-          console.log("ID de movilidad: ", idMovilidad);
-          //console.log("nombre de pais: ", nombre);
-        } else {
-          console.log("no se encontro na en movilidades");
-        }
-      }
-      //query nacionalidad id
-      db.query(
-        "SELECT idNacionalidad, Descripcion FROM nacionalidad WHERE idNacionalidad=?",
-        [pais],
-        function (err, result) {
-          if (err) {
-            console.log(err);
-            return res.status(500).send("Error en paises");
-          } else {
-            if (result && result.length > 0) {
-              idPais = result[0].idNacionalidad;
-              //const nombre = result[0].Descripcion;
-              console.log("ID de pais: ", idPais);
-              //console.log("nombre de pais: ", nombre);
+        // Guarda los datos anteriores en un objeto
+        const datosAnteriores = resultAnterior[0];
+        //query movilidad insert e id
+        db.query(
+          "SELECT  idMovilidad FROM movilidad WHERE idMovilidad=?",
+          [tipo_movi],
+          function (err, result) {
+            if (err) {
+              console.log(err);
+              return res.status(500).send("Error en movilidades");
             } else {
-              console.log("no se encontro na en paises");
-            }
-          }
-          //query documento id
-          db.query(
-            "SELECT idDocumento, Tipo_docu FROM documento WHERE idDocumento=?",
-            [tipo_docu],
-            function (err, result) {
-              if (err) {
-                console.log(err);
-                return res.status(500).send("Error en tipo documento");
+              if (result && result.length > 0) {
+                idMovilidad = result[0].idMovilidad;
+                //const nombre = result[0].Descripcion;
+                console.log("ID de movilidad: ", idMovilidad);
+                //console.log("nombre de pais: ", nombre);
               } else {
-                if (result && result.length > 0) {
-                  idTipodocu = result[0].idDocumento;
-                  //const nombredocu = result[0].Tipo_docu;
-                  console.log("id docu: ", idTipodocu);
-                  //console.log("nombre docutipo: ", nombredocu);
-                } else {
-                  console.log("no se encontro coincidencia en tipo documento");
-                }
+                console.log("no se encontro na en movilidades");
               }
-              //query estado civil id
-              db.query(
-                "SELECT idEstado_civil, Descripcion FROM estado_civil WHERE idEstado_civil=?",
-                [civil],
-                function (err, result) {
-                  if (err) {
-                    console.log(err);
-                    return res.status(500).send("Error en estado civil");
+            }
+            //query nacionalidad id
+            db.query(
+              "SELECT idNacionalidad, Descripcion FROM nacionalidad WHERE idNacionalidad=?",
+              [pais],
+              function (err, result) {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send("Error en paises");
+                } else {
+                  if (result && result.length > 0) {
+                    idPais = result[0].idNacionalidad;
+                    //const nombre = result[0].Descripcion;
+                    console.log("ID de pais: ", idPais);
+                    //console.log("nombre de pais: ", nombre);
                   } else {
-                    if (result && result.length > 0) {
-                      idCivil = result[0].idEstado_civil;
-                      //const nombrecivil = result[0].Descripcion;
-                      console.log("id estado civil: ", idCivil);
-                      //console.log("nombre de estado civil: ", nombrecivil);
-                    } else {
-                      console.log(
-                        "No se encontro coincidencias en estado civil"
-                      );
-                    }
+                    console.log("no se encontro na en paises");
                   }
-                  //query insertar alumno
-                  db.query(
-                    "UPDATE alumnos SET Nombre = ?, Apellido = ?, Numero_docu = ?, Numero_telefono = ?, Lugar_nacimiento = ?, Fecha_nacimiento = ?, Correo = ?, Estado_civil_idEstado_civil = ?, Documento_idDocumento = ?, Nacionalidad_idNacionalidad = ?, Estado_alumno_idEstado_alumno = ?, Movilidad_idMovilidad = ?, tiempo = ?, distancia = ? WHERE idAlumnos = ?",
-                    [
-                      nombre,
-                      apellidos,
-                      nro_docu,
-                      telefono,
-                      l_naci,
-                      f_naci,
-                      correo,
-                      idCivil,
-                      idTipodocu,
-                      idPais,
-                      idestado,
-                      idMovilidad,
-                      tiempo,
-                      distancia,
-                      idAlumno, // ¡Asegúrate de tener el ID del alumno aquí!
-                    ],
-                    function (err, result) {
-                      if (err) {
-                        console.log(err);
-                        return res
-                          .status(500)
-                          .send("Error en actualización de alumno");
+                }
+                //query documento id
+                db.query(
+                  "SELECT idDocumento, Tipo_docu FROM documento WHERE idDocumento=?",
+                  [tipo_docu],
+                  function (err, result) {
+                    if (err) {
+                      console.log(err);
+                      return res.status(500).send("Error en tipo documento");
+                    } else {
+                      if (result && result.length > 0) {
+                        idTipodocu = result[0].idDocumento;
+                        //const nombredocu = result[0].Tipo_docu;
+                        console.log("id docu: ", idTipodocu);
+                        //console.log("nombre docutipo: ", nombredocu);
                       } else {
-                        console.log("El alumno se ha actualizado con éxito");
-                        return res
-                          .status(200)
-                          .send("Alumno actualizado con éxito");
+                        console.log(
+                          "no se encontro coincidencia en tipo documento"
+                        );
                       }
                     }
-                  );
-                }
-              );
-            }
-          );
-        }
-      );
+                    //query estado civil id
+                    db.query(
+                      "SELECT idEstado_civil, Descripcion FROM estado_civil WHERE idEstado_civil=?",
+                      [civil],
+                      function (err, result) {
+                        if (err) {
+                          console.log(err);
+                          return res.status(500).send("Error en estado civil");
+                        } else {
+                          if (result && result.length > 0) {
+                            idCivil = result[0].idEstado_civil;
+                            //const nombrecivil = result[0].Descripcion;
+                            console.log("id estado civil: ", idCivil);
+                            //console.log("nombre de estado civil: ", nombrecivil);
+                          } else {
+                            console.log(
+                              "No se encontro coincidencias en estado civil"
+                            );
+                          }
+                        }
+                        //query insertar alumno
+                        db.query(
+                          "UPDATE alumnos SET Nombre = ?, Apellido = ?, Numero_docu = ?, Numero_telefono = ?, Lugar_nacimiento = ?, Fecha_nacimiento = ?, Correo = ?, Estado_civil_idEstado_civil = ?, Documento_idDocumento = ?, Nacionalidad_idNacionalidad = ?, Estado_alumno_idEstado_alumno = ?, Movilidad_idMovilidad = ?, tiempo = ?, distancia = ? WHERE idAlumnos = ?",
+                          [
+                            nombre,
+                            apellidos,
+                            nro_docu,
+                            telefono,
+                            l_naci,
+                            f_naci,
+                            correo,
+                            idCivil,
+                            idTipodocu,
+                            idPais,
+                            idestado,
+                            idMovilidad,
+                            tiempo,
+                            distancia,
+                            idAlumno, // ¡Asegúrate de tener el ID del alumno aquí!
+                          ],
+                          function (err, result) {
+                            if (err) {
+                              console.log(err);
+                              return res
+                                .status(500)
+                                .send("Error en actualización de alumno");
+                            } else {
+                              const tabla = "Alumnos";
+                              const cambio = "Actualización";
+                              const datosAnterioresString =
+                                JSON.stringify(datosAnteriores);
+                              Auditoria(
+                                idUsuario,
+                                tabla,
+                                cambio,
+                                datosAnterioresString
+                              );
+
+                              console.log(
+                                "El alumno se ha actualizado con éxito"
+                              );
+                              return res
+                                .status(200)
+                                .send("Alumno actualizado con éxito");
+                            }
+                          }
+                        );
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
     }
   );
 });
 
 //query borrar alumno
-app.delete("/deleteAlumno/:idAlumno", (req, res) => {
+app.delete("/deleteAlumno/:idAlumno/:idUsuario", (req, res) => {
   const idAlumno = req.params.idAlumno;
-  //eliminar usuario primero para que no salte error por foranea
-  const deleteUsuarioQuery = "DELETE FROM usuario WHERE Alumnos_idAlumnos = ?";
-  db.query(deleteUsuarioQuery, idAlumno, (errUsuario, resultUsuario) => {
-    if (errUsuario) {
-      console.error("Error al eliminar usuario:", errUsuario);
-      return res.status(500).send("Error al eliminar usuario");
+  const idUsuario = req.params.idUsuario;
+
+  // Obtén los datos anteriores del alumno antes de eliminarlo
+  const obtenerDatosQuery = `
+    SELECT * FROM alumnos WHERE idAlumnos = ?;
+  `;
+
+  db.query(obtenerDatosQuery, [idAlumno], (err, resultados) => {
+    if (err) {
+      console.error("Error al obtener datos del alumno:", err);
+      return res.status(500).send("Error al obtener datos del alumno");
     }
-    //delete user
-    const deleteAlumnoQuery = "DELETE FROM alumnos WHERE idAlumnos = ?";
-    db.query(deleteAlumnoQuery, idAlumno, (errAlumno, resultAlumno) => {
-      if (errAlumno) {
-        console.error("Error al eliminar el alumno:", errAlumno);
-        return res.status(500).send("Error al eliminar el alumno");
+
+    // Almacena los datos anteriores en un objeto
+    const datosAnteriores = {
+      Nombre: resultados[0].Nombre,
+      Apellido: resultados[0].Apellido,
+      // Agrega más campos según sea necesario
+    };
+
+    // Elimina el usuario primero para evitar errores de clave externa
+    const deleteUsuarioQuery = "DELETE FROM usuario WHERE Alumnos_idAlumnos = ?";
+    db.query(deleteUsuarioQuery, idAlumno, (errUsuario, resultUsuario) => {
+      if (errUsuario) {
+        console.error("Error al eliminar usuario:", errUsuario);
+        return res.status(500).send("Error al eliminar usuario");
       }
-      return res
-        .status(200)
-        .send(`Alumno con ID ${idAlumno} eliminado correctamente`);
+
+      // Elimina el alumno
+      const deleteAlumnoQuery = "DELETE FROM alumnos WHERE idAlumnos = ?";
+      db.query(deleteAlumnoQuery, idAlumno, (errAlumno, resultAlumno) => {
+        if (errAlumno) {
+          console.error("Error al eliminar el alumno:", errAlumno);
+          return res.status(500).send("Error al eliminar el alumno");
+        }
+
+        // Llama a la función Auditoria con los datos anteriores
+        const tabla = "Alumnos";
+        const cambio = "Eliminación";
+        Auditoria(idUsuario, tabla, cambio, JSON.stringify(datosAnteriores));
+
+        return res
+          .status(200)
+          .send(`Alumno con ID ${idAlumno} eliminado correctamente`);
+      });
     });
   });
 });

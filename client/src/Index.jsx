@@ -62,7 +62,7 @@ function Index() {
               <Route path="/home" User={data} element={<Inicio />} />
               {data.user && data.user.rol === 1 && (
                 <>
-                  <Route path="/alumnoAdd" element={<FormularioAñadir />} />
+                  <Route path="/alumnoAdd" element={<FormularioAñadir User={data}/>} />
                   <Route path="/materiaAdd" element={<Materias />} />
                   <Route path="/profesorAdd" element={<ProfesoresForm />} />
                   <Route path="/semestreCreate" element={<CrearSemestre />} />

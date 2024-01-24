@@ -11,8 +11,9 @@ import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 
-function FormularioAñadir() {
+function FormularioAñadir({User}) {
   Axios.defaults.withCredentials = true;
+  console.log(User.user.idusuario);
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [pais, setPais] = useState([]);
@@ -130,6 +131,7 @@ function FormularioAñadir() {
       tipo_movi: selectedtransp,
       tiempo: tiempo,
       distancia: distancia,
+      idUsuario: User.user.idusuario
     })
       .then(function (response) {
         
@@ -193,6 +195,7 @@ function FormularioAñadir() {
       tipo_movi: selectedtransp,
       tiempo: tiempo,
       distancia: distancia,
+      idUsuario: User.user.idusuario
     })
       .then(function (response) {
         listaAlumnos();
@@ -208,7 +211,7 @@ function FormularioAñadir() {
 
   //eliminar alumnos
   const deleteAlumno = (idAlumno) => {
-    Axios.delete(`http://localhost:3000/deleteAlumno/${idAlumno}`)
+    Axios.delete(`http://localhost:3000/deleteAlumno/${idAlumno}/${User.user.idusuario}`)
       .then(function (response) {
         listaAlumnos();
         // console.log("entro en then: ", response);

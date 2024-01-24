@@ -13,7 +13,6 @@ import ButtonGroup from "react-bootstrap/ButtonGroup";
 
 function FormularioAñadir({User}) {
   Axios.defaults.withCredentials = true;
-  console.log(User.user.idusuario);
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [pais, setPais] = useState([]);

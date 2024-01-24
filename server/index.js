@@ -51,11 +51,11 @@ db.connect(function (err) {
 function Auditoria(idUsuario, tabla, cambio, datos_anteriores) {
   const fechaActual = new Date().toISOString().slice(0, 10);
 
-  console.log("realizo el cambio: ", idUsuario);
+/*  console.log("realizo el cambio: ", idUsuario);
   console.log(" el cambio: ", cambio);
   console.log("en: ", tabla);
   console.log("anterior", datos_anteriores);
-  console.log("en fecha: ", fechaActual);
+  console.log("en fecha: ", fechaActual);*/
   const insertQuery = `
     INSERT INTO historial (fecha, donde, tipo_cambio, datos_anteriores, usuario_idusuario)
     VALUES (?, ?, ?, ?, ?);
@@ -469,11 +469,7 @@ app.delete("/deleteAlumno/:idAlumno/:idUsuario", (req, res) => {
     }
 
     // Almacena los datos anteriores en un objeto
-    const datosAnteriores = {
-      Nombre: resultados[0].Nombre,
-      Apellido: resultados[0].Apellido,
-      // Agrega más campos según sea necesario
-    };
+    const datosAnteriores = resultados[0]        
 
     // Elimina el usuario primero para evitar errores de clave externa
     const deleteUsuarioQuery =
@@ -556,7 +552,7 @@ app.put("/updateMateria", (req, res) => {
       console.log(err);
       return res.status(500).send("Error al obtener datos anteriores");
     }
-    const datosAnteriores = result.length > 0 ? result[0] : null;
+    const datosAnteriores =  result[0];
     const actualizarMateriaQuery =
       "UPDATE materias SET Nombre=?, Carga_horaria=? WHERE idMaterias=?";
     db.query(

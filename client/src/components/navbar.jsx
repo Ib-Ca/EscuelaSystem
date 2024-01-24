@@ -114,7 +114,13 @@ export default function NavbarDefault({ User }) {
               }
               id="usuario_nav"
             >
-              <NavDropdown.Item href="">Info</NavDropdown.Item>
+              {User && (User.user.rol === 2 || User.user.rol === 2) && (
+                <NavDropdown.Item
+                  href={`/info/pass/${User && User.user && User.user.username}`}
+                >
+                  Info
+                </NavDropdown.Item>
+              )}
               <NavDropdown.Item href="" onClick={handleLogout}>
                 Cerrar Sesión
               </NavDropdown.Item>

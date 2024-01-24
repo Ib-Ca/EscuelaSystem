@@ -2942,6 +2942,32 @@ app.get("/server/historial", (req, res) => {
   });
 });
 
+//cambiar password
+app.put("/server/changePass", async (req, res) => {
+  try {
+    const idUsuario = req.body.idUsuario;
+    const password = req.body.password;
+    //hasheo
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
+      if (err) {
+        console.error("Error al generar el hash de la contraseña:", err);
+        res.status(500).send("Hubo un error al actualizar el usuario");
+        return;
+      }
+      await db.query("UPDATE usuario SET password=? WHERE idusuario=?", [
+        hash,
+        idUsuario,
+      ]);
+      res.status(200).json({
+        message: "Exito",
+      });
+    });
+  } catch (error) {
+    console.error("Error en createUser:", error);
+    res.status(500).send("Hubo un error");
+  }
+});
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

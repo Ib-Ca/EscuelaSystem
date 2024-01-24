@@ -26,6 +26,7 @@ import VerMaterias from "./components/alumnos/VerMaterias.jsx";
 import CheckProcesos from "./components/alumnos/CheckProcesos.jsx";
 import Presentes from "./components/alumnos/Presentes.jsx";
 import Historial from "./components/Historial.jsx";
+import CambiarPass from "./components/CambiarPass.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -159,6 +160,15 @@ function Index() {
                   <Route
                     path="/alumno/asistencia/:username"
                     element={<Presentes User={data} />}
+                    User={data}
+                  />
+                </>
+              )}
+              {data && (data.user.rol === 2 || data.user.rol === 3) && (
+                <>
+                  <Route
+                    path="/info/pass/:username"
+                    element={<CambiarPass User={data} />}
                     User={data}
                   />
                 </>

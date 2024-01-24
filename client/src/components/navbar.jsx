@@ -85,7 +85,11 @@ export default function NavbarDefault({ User }) {
             )}
             {User && (User.user.rol === 1 || User.user.rol === 3) && (
               <NavDropdown title="ALUMNOS" id="alumnos">
-                <NavDropdown.Item href="">Placeholder1</NavDropdown.Item>
+                <NavDropdown.Item
+                  href={`/alumno/${User && User.user && User.user.username}`}
+                >
+                  Ver Observaciones
+                </NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder2</NavDropdown.Item>
                 <NavDropdown.Item href="">Placeholder3</NavDropdown.Item>
               </NavDropdown>

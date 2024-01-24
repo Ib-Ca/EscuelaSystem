@@ -21,6 +21,7 @@ import UsuarioLista from "./components/UsuarioLista.jsx";
 import Asistencias from "./components/profesores/Asistencias.jsx";
 import TomarAsistencia from "./components/profesores/TomarAsistencia.jsx";
 import VerAsistencias from "./components/profesores/VerAsistencias.jsx";
+import VerObservaciones from "./components/alumnos/VerObservaciones.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -117,6 +118,15 @@ function Index() {
                   <Route
                     path="/ver-asistencia/:idHorario/:idSemestre/:dia/:NombreMateria/:NombreSemestre/:DescripcionSeccion/:username"
                     element={<VerAsistencias User={data} />}
+                    User={data}
+                  />
+                </>
+              )}
+               {data && (data.user.rol === 1 || data.user.rol === 3) && (
+                <>
+                  <Route
+                    path="/alumno/:username"
+                    element={<VerObservaciones User={data} />}
                     User={data}
                   />
                 </>

@@ -9,7 +9,7 @@ import Table from "react-bootstrap/Table";
 import Axios from "axios";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 
-export const Materias = () => {
+export const Materias = ({ User }) => {
   const [materia, setMateria] = useState("");
   const [carga, setCarga] = useState("");
   const [edit, setEdit] = useState(false);
@@ -20,9 +20,10 @@ export const Materias = () => {
     Axios.post("http://localhost:3000/createMateria", {
       materia: materia,
       carga: carga,
+      idUsuario: User.user.idusuario,
     })
       .then(function (response) {
-       // alert("Materia Registrada");
+        // alert("Materia Registrada");
       })
       .catch(function (error) {
         console.log(response);
@@ -59,6 +60,7 @@ export const Materias = () => {
       idMaterias: idMat,
       materia: materia,
       carga: carga,
+      idUsuario: User.user.idusuario
     })
       .then(function (response) {
         listaMateria();
@@ -73,7 +75,7 @@ export const Materias = () => {
   };
 
   const deleteMaterias = (idMaterias) => {
-    Axios.delete(`http://localhost:3000/deleteMateria/${idMaterias}`)
+    Axios.delete(`http://localhost:3000/deleteMateria/${idMaterias}/${User.user.idusuario}`)
       .then(function (response) {
         listaMateria();
         // console.log("entro en then: ", response);
@@ -84,7 +86,6 @@ export const Materias = () => {
         alert("Hubo un error, intente de nuevo");
       });
   };
-
 
   const handleInputCarga = (event) => {
     const inputValue = event.target.value;
@@ -133,7 +134,6 @@ export const Materias = () => {
                       type="number"
                       placeholder="En horas"
                       value={carga}
-                      
                     />
                   </Form.Group>
                 </Row>

@@ -63,8 +63,8 @@ function Index() {
               {data.user && data.user.rol === 1 && (
                 <>
                   <Route path="/alumnoAdd" element={<FormularioAñadir User={data}/>} />
-                  <Route path="/materiaAdd" element={<Materias />} />
-                  <Route path="/profesorAdd" element={<ProfesoresForm />} />
+                  <Route path="/materiaAdd" element={<Materias User={data}/>} />
+                  <Route path="/profesorAdd" element={<ProfesoresForm User={data}/>} />
                   <Route path="/semestreCreate" element={<CrearSemestre />} />
                   <Route
                     path="/semestreEdit/:Nombre"

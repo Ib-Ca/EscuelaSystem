@@ -476,7 +476,8 @@ app.delete("/deleteAlumno/:idAlumno/:idUsuario", (req, res) => {
     };
 
     // Elimina el usuario primero para evitar errores de clave externa
-    const deleteUsuarioQuery = "DELETE FROM usuario WHERE Alumnos_idAlumnos = ?";
+    const deleteUsuarioQuery =
+      "DELETE FROM usuario WHERE Alumnos_idAlumnos = ?";
     db.query(deleteUsuarioQuery, idAlumno, (errUsuario, resultUsuario) => {
       if (errUsuario) {
         console.error("Error al eliminar usuario:", errUsuario);
@@ -508,14 +509,22 @@ app.delete("/deleteAlumno/:idAlumno/:idUsuario", (req, res) => {
 app.post("/createMateria", (req, res) => {
   const materia = req.body.materia;
   const carga = req.body.carga;
+  const idUsuario = req.body.idUsuario;
+  const insertarMateriaQuery =
+    "INSERT INTO materias(Nombre, Carga_horaria) VALUES (?, ?)";
+
   db.query(
-    "INSERT INTO materias(Nombre, Carga_horaria) VALUES (?,?)",
+    insertarMateriaQuery,
     [materia, carga],
-    function (err, result) {
-      if (err) {
-        console.log(err);
+    (errInsertar, resultInsertar) => {
+      if (errInsertar) {
+        console.log(errInsertar);
         return res.status(500).send("Error en el ingreso de materia");
       } else {
+        const tabla = "Materias";
+        const cambio = "Creación";
+        const datosAnteriores = "";
+        Auditoria(idUsuario, tabla, cambio, datosAnteriores);
         return res.status(200).send("Materia guardada");
       }
     }
@@ -536,39 +545,78 @@ app.get("/server/materia", (req, res) => {
 //query actualizar materias
 app.put("/updateMateria", (req, res) => {
   const idMaterias = req.body.idMaterias;
-  const materia = req.body.materia;
-  const carga = req.body.carga;
-  console.log("la id es: ", idMaterias);
-  console.log(materia);
-  console.log(carga);
-  db.query(
-    "UPDATE materias SET Nombre=?, Carga_horaria=? WHERE idMaterias=?",
-    [materia, carga, idMaterias],
-    function (err, result) {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("Error en la actualizacion de la materia");
-      } else {
-        console.log("Actualizado con exito");
-        return res.status(200).send("Alumno actualizado con exito");
-      }
+  const nuevaMateria = req.body.materia;
+  const nuevaCarga = req.body.carga;
+  const idUsuario = req.body.idUsuario;
+  // Consulta para obtener los datos anteriores antes de la actualización
+  const obtenerDatosAnterioresQuery =
+    "SELECT Nombre, Carga_horaria FROM materias WHERE idMaterias = ?";
+  db.query(obtenerDatosAnterioresQuery, [idMaterias], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Error al obtener datos anteriores");
     }
-  );
+    const datosAnteriores = result.length > 0 ? result[0] : null;
+    const actualizarMateriaQuery =
+      "UPDATE materias SET Nombre=?, Carga_horaria=? WHERE idMaterias=?";
+    db.query(
+      actualizarMateriaQuery,
+      [nuevaMateria, nuevaCarga, idMaterias],
+      (errActualizar) => {
+        if (errActualizar) {
+          console.log(errActualizar);
+          return res
+            .status(500)
+            .send("Error en la actualización de la materia");
+        } else {
+          const tabla = "Materias";
+          const cambio = "Actualización";
+          Auditoria(idUsuario, tabla, cambio, JSON.stringify(datosAnteriores));
+          console.log("Materia actualizada con éxito");
+          return res.status(200).send("Materia actualizada con éxito");
+        }
+      }
+    );
+  });
 });
 
 //borrar materia
-app.delete("/deleteMateria/:idMaterias", (req, res) => {
+app.delete("/deleteMateria/:idMaterias/:idUsuario", (req, res) => {
   const idMaterias = req.params.idMaterias;
-  const query = "DELETE FROM materias WHERE idMaterias = ?";
-  db.query(query, idMaterias, (err, result) => {
-    if (err) {
-      console.error("Error al eliminar la materia:", err);
-      return res.status(500).send("Error al eliminar la materia");
+  const idUsuario = req.params.idUsuario;
+  const obtenerDatosQuery = "SELECT * FROM materias WHERE idMaterias = ?";
+  db.query(
+    obtenerDatosQuery,
+    [idMaterias],
+    (errDatosAnteriores, resultadosDatosAnteriores) => {
+      if (errDatosAnteriores) {
+        console.error("Error al obtener datos anteriores:", errDatosAnteriores);
+        return res.status(500).send("Error al obtener datos anteriores");
+      }
+      const deleteMateriaQuery = "DELETE FROM materias WHERE idMaterias = ?";
+      db.query(
+        deleteMateriaQuery,
+        idMaterias,
+        (errEliminarMateria, resultEliminarMateria) => {
+          if (errEliminarMateria) {
+            console.error("Error al eliminar la materia:", errEliminarMateria);
+            return res.status(500).send("Error al eliminar la materia");
+          }
+          const tabla = "Materias";
+          const cambio = "Eliminación";
+          const datosAnteriores =
+            resultadosDatosAnteriores.length > 0
+              ? JSON.stringify(resultadosDatosAnteriores[0])
+              : "";
+          Auditoria(idUsuario, tabla, cambio, datosAnteriores);
+
+          return res
+            .status(200)
+            .send(`Materia con ID ${idMaterias} eliminada correctamente`);
+        }
+      );
     }
-    return res
-      .status(200)
-      .send(`Alumno con ID ${idMaterias} eliminado correctamente`);
-  });
+  );
 });
 
 //crear profesor
@@ -581,6 +629,7 @@ app.post("/createProfesor", (req, res) => {
   const civil = req.body.civil;
   const telefono = req.body.telefono;
   const correo = req.body.correo;
+  const idUsuario = req.body.idUsuario;
   let idCivil;
   let idTipodocu;
   let idPais;
@@ -657,6 +706,10 @@ app.post("/createProfesor", (req, res) => {
                     return res.status(500).send("Error en ingreso de Profesor");
                   } else {
                     const idProfesor = result.insertId;
+                    const tabla = "Profesor";
+                    const cambio = "Creación";
+                    const datos_anteriores = "";
+                    Auditoria(idUsuario, tabla, cambio, datos_anteriores);
                     console.log("El id del profesor es: ", idProfesor);
                     return res.status(200).json({
                       profeCreado: true,
@@ -685,47 +738,76 @@ app.get("/server/profesores", (req, res) => {
 });
 
 //borrar profe
-app.delete("/deleteProfe/:idProfesores", (req, res) => {
+app.delete("/deleteProfe/:idProfesores/:idUsuario", (req, res) => {
   const idProfesores = req.params.idProfesores;
-  const getUsuarioIdQuery =
-    "SELECT usuario_idusuario FROM profesores WHERE idProfesores = ?";
-  db.query(getUsuarioIdQuery, idProfesores, (err, result) => {
-    if (err) {
-      console.error("Error al obtener el usuario_idusuario:", err);
-      return res.status(500).send("Error al eliminar el profesor y su usuario");
-    }
-    const usuarioId = result[0].usuario_idusuario;
-    // Eliminar el profesor
-    const deleteProfeQuery = "DELETE FROM profesores WHERE idProfesores = ?";
-    db.query(deleteProfeQuery, idProfesores, (err, result) => {
+  const idUsuario = req.params.idUsuario;
+  db.query(
+    "SELECT * FROM profesores WHERE idProfesores = ?",
+    [idProfesores],
+    function (err, resultAnterior) {
       if (err) {
-        console.error("Error al eliminar el profesor:", err);
+        console.log(err);
         return res
           .status(500)
-          .send("Error al eliminar el profesor y su usuario");
-      }
-      // Si se encuentra un usuario asociado, eliminarlo
-      if (usuarioId) {
-        const deleteUsuarioQuery = "DELETE FROM usuario WHERE idusuario = ?";
-        db.query(deleteUsuarioQuery, usuarioId, (err, result) => {
-          if (err) {
-            console.error("Error al eliminar el usuario:", err);
-            return res.status(500).send("Error al eliminar el usuario");
-          }
-
-          return res
-            .status(200)
-            .send(
-              `Profesor con ID ${idProfesores} y su usuario eliminados correctamente`
-            );
-        });
+          .send("Error al obtener datos anteriores del profesor");
       } else {
-        return res
-          .status(200)
-          .send(`Profesor con ID ${idProfesores} eliminado correctamente`);
+        // Guarda los datos anteriores en un objeto
+        const datosAnteriores = resultAnterior[0];
+        const getUsuarioIdQuery =
+          "SELECT usuario_idusuario FROM profesores WHERE idProfesores = ?";
+        db.query(getUsuarioIdQuery, idProfesores, (err, result) => {
+          if (err) {
+            console.error("Error al obtener el usuario_idusuario:", err);
+            return res
+              .status(500)
+              .send("Error al eliminar el profesor y su usuario");
+          }
+          const usuarioId = result[0].usuario_idusuario;
+          // Eliminar el profesor
+          const deleteProfeQuery =
+            "DELETE FROM profesores WHERE idProfesores = ?";
+          db.query(deleteProfeQuery, idProfesores, (err, result) => {
+            if (err) {
+              console.error("Error al eliminar el profesor:", err);
+              return res
+                .status(500)
+                .send("Error al eliminar el profesor y su usuario");
+            }
+            // Si se encuentra un usuario asociado, eliminarlo
+            if (usuarioId) {
+              const deleteUsuarioQuery =
+                "DELETE FROM usuario WHERE idusuario = ?";
+              db.query(deleteUsuarioQuery, usuarioId, (err, result) => {
+                if (err) {
+                  console.error("Error al eliminar el usuario:", err);
+                  return res.status(500).send("Error al eliminar el usuario");
+                }
+                const tabla = "Profesor";
+                const cambio = "Eliminación";
+                Auditoria(
+                  idUsuario,
+                  tabla,
+                  cambio,
+                  JSON.stringify(datosAnteriores)
+                );
+                return res
+                  .status(200)
+                  .send(
+                    `Profesor con ID ${idProfesores} y su usuario eliminados correctamente`
+                  );
+              });
+            } else {
+              return res
+                .status(200)
+                .send(
+                  `Profesor con ID ${idProfesores} eliminado correctamente`
+                );
+            }
+          });
+        });
       }
-    });
-  });
+    }
+  );
 });
 
 //actualizar profe
@@ -739,95 +821,118 @@ app.put("/updateProfe", (req, res) => {
   const civil = req.body.civil;
   const telefono = req.body.telefono;
   const correo = req.body.correo;
+  const idUsuario = req.body.idUsuario;
   let idCivil;
   let idTipodocu;
   let idPais;
-  //query nacionalidad id
+
   db.query(
-    "SELECT idNacionalidad, Descripcion FROM nacionalidad WHERE idNacionalidad=?",
-    [pais],
-    function (err, result) {
+    "SELECT * FROM profesores WHERE idProfesores = ?",
+    [idProfesores],
+    function (err, resultAnterior) {
       if (err) {
         console.log(err);
-        return res.status(500).send("Error en paises");
+        return res
+          .status(500)
+          .send("Error al obtener datos anteriores del profesor");
       } else {
-        if (result && result.length > 0) {
-          idPais = result[0].idNacionalidad;
-          //const nombre = result[0].Descripcion;
-          console.log("ID de pais: ", idPais);
-          //console.log("nombre de pais: ", nombre);
-        } else {
-          console.log("no se encontro na en paises");
-        }
-      }
-      //query documento id
-      db.query(
-        "SELECT idDocumento, Tipo_docu FROM documento WHERE idDocumento=?",
-        [tipo_docu],
-        function (err, result) {
-          if (err) {
-            console.log(err);
-            return res.status(500).send("Error en tipo documento");
-          } else {
-            if (result && result.length > 0) {
-              idTipodocu = result[0].idDocumento;
-              //const nombredocu = result[0].Tipo_docu;
-              console.log("id docu: ", idTipodocu);
-              //console.log("nombre docutipo: ", nombredocu);
+        // Guarda los datos anteriores en un objeto
+        const datosAnteriores = resultAnterior[0];
+
+        //query nacionalidad id
+        db.query(
+          "SELECT idNacionalidad, Descripcion FROM nacionalidad WHERE idNacionalidad=?",
+          [pais],
+          function (err, result) {
+            if (err) {
+              console.log(err);
+              return res.status(500).send("Error en paises");
             } else {
-              console.log("no se encontro coincidencia en tipo documento");
-            }
-          }
-          //query estado civil id
-          db.query(
-            "SELECT idEstado_civil, Descripcion FROM estado_civil WHERE idEstado_civil=?",
-            [civil],
-            function (err, result) {
-              if (err) {
-                console.log(err);
-                return res.status(500).send("Error en estado civil");
+              if (result && result.length > 0) {
+                idPais = result[0].idNacionalidad;
+                //const nombre = result[0].Descripcion;
+                console.log("ID de pais: ", idPais);
+                //console.log("nombre de pais: ", nombre);
               } else {
-                if (result && result.length > 0) {
-                  idCivil = result[0].idEstado_civil;
-                  //const nombrecivil = result[0].Descripcion;
-                  console.log("id estado civil: ", idCivil);
-                  //console.log("nombre de estado civil: ", nombrecivil);
-                } else {
-                  console.log("No se encontro coincidencias en estado civil");
-                }
+                console.log("no se encontro na en paises");
               }
-              //query insertar alumno
-              db.query(
-                "UPDATE profesores SET Nombre = ?, Apellido = ?, Correo = ?,  Numero_telefono = ?,Numero_docu = ?, Estado_civil_idEstado_civil = ?,Nacionalidad_idNacionalidad = ?, Documento_idDocumento = ? WHERE idProfesores = ?",
-                [
-                  nombre,
-                  apellidos,
-                  correo,
-                  telefono,
-                  nro_docu,
-                  idCivil,
-                  idPais,
-                  idTipodocu,
-                  idProfesores,
-                ],
-                function (err, result) {
-                  if (err) {
-                    console.log(err);
-                    return res
-                      .status(500)
-                      .send("Error en actualización de profesor");
+            }
+            //query documento id
+            db.query(
+              "SELECT idDocumento, Tipo_docu FROM documento WHERE idDocumento=?",
+              [tipo_docu],
+              function (err, result) {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send("Error en tipo documento");
+                } else {
+                  if (result && result.length > 0) {
+                    idTipodocu = result[0].idDocumento;
+                    //const nombredocu = result[0].Tipo_docu;
+                    console.log("id docu: ", idTipodocu);
+                    //console.log("nombre docutipo: ", nombredocu);
                   } else {
-                    console.log("El profesor se ha actualizado con éxito");
-                    return res
-                      .status(200)
-                      .send("Profesor actualizado con éxito");
+                    console.log("no se encontro coincidencia en tipo documento");
                   }
                 }
-              );
-            }
-          );
-        }
-      );
+                //query estado civil id
+                db.query(
+                  "SELECT idEstado_civil, Descripcion FROM estado_civil WHERE idEstado_civil=?",
+                  [civil],
+                  function (err, result) {
+                    if (err) {
+                      console.log(err);
+                      return res.status(500).send("Error en estado civil");
+                    } else {
+                      if (result && result.length > 0) {
+                        idCivil = result[0].idEstado_civil;
+                        //const nombrecivil = result[0].Descripcion;
+                        console.log("id estado civil: ", idCivil);
+                        //console.log("nombre de estado civil: ", nombrecivil);
+                      } else {
+                        console.log(
+                          "No se encontro coincidencias en estado civil"
+                        );
+                      }
+                    }
+                    //query insertar profesor
+                    db.query(
+                      "UPDATE profesores SET Nombre = ?, Apellido = ?, Correo = ?,  Numero_telefono = ?,Numero_docu = ?, Estado_civil_idEstado_civil = ?,Nacionalidad_idNacionalidad = ?, Documento_idDocumento = ? WHERE idProfesores = ?",
+                      [
+                        nombre,
+                        apellidos,
+                        correo,
+                        telefono,
+                        nro_docu,
+                        idCivil,
+                        idPais,
+                        idTipodocu,
+                        idProfesores,
+                      ],
+                      function (err, result) {
+                        if (err) {
+                          console.log(err);
+                          return res
+                            .status(500)
+                            .send("Error en actualización de profesor");
+                        } else {
+                          const tabla = "Profesor";
+                          const cambio = "Actualización";
+                          Auditoria(idUsuario, tabla, cambio, JSON.stringify(datosAnteriores));
+                          console.log("El profesor se ha actualizado con éxito");
+                          return res
+                            .status(200)
+                            .send("Profesor actualizado con éxito");
+                        }
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
     }
   );
 });

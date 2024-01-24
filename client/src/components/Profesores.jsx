@@ -11,7 +11,7 @@ import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 
-function ProfesoresForm() {
+function ProfesoresForm({User}) {
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [pais, setPais] = useState([]);
@@ -88,6 +88,7 @@ function ProfesoresForm() {
       civil: selectedcivil,
       telefono: telefono,
       correo: correo,
+      idUsuario: User.user.idusuario
     })
       .then(function (response) {
         if (response.data.profeCreado === true) {
@@ -140,6 +141,7 @@ function ProfesoresForm() {
       civil: selectedcivil,
       telefono: telefono,
       correo: correo,
+      idUsuario: User.user.idusuario
     })
       .then(function (response) {
         listaProfesor();
@@ -155,7 +157,7 @@ function ProfesoresForm() {
 
   //eliminar profesores
   const edeleteProfe = (idProfesores) => {
-    Axios.delete(`http://localhost:3000/deleteProfe/${idProfesores}`)
+    Axios.delete(`http://localhost:3000/deleteProfe/${idProfesores}/${User.user.idusuario}`)
       .then(function (response) {
         listaProfesor();
         // console.log("entro en then: ", response);

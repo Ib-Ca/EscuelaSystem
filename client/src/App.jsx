@@ -10,8 +10,9 @@ import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
+import { Link } from "react-router-dom";
 
-function FormularioAñadir({User}) {
+function FormularioAñadir({ User }) {
   Axios.defaults.withCredentials = true;
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
@@ -29,7 +30,6 @@ function FormularioAñadir({User}) {
   const [alumnos, setAlumnos] = useState([]);
   const [idAl, setIdal] = useState();
   const [edit, setEdit] = useState(false);
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -115,7 +115,7 @@ function FormularioAñadir({User}) {
     e.preventDefault();
     setUsername(nro_docu);
     setPassword(nro_docu);
-  
+
     Axios.post("http://localhost:3000/createAlumno", {
       nombre: nombre,
       apellidos: apellidos,
@@ -130,17 +130,16 @@ function FormularioAñadir({User}) {
       tipo_movi: selectedtransp,
       tiempo: tiempo,
       distancia: distancia,
-      idUsuario: User.user.idusuario
+      idUsuario: User.user.idusuario,
     })
       .then(function (response) {
-        
         // Asegurarse de que el alumno se haya creado correctamente
-        if (response.data.alumnoCreado===true) {
+        if (response.data.alumnoCreado === true) {
           // Si se creó correctamente, entonces crear el usuario
           return Axios.post("http://localhost:3000/createUser", {
             username: nro_docu,
             password: nro_docu,
-            idAlumno: response.data.idAlumno
+            idAlumno: response.data.idAlumno,
           });
         } else {
           // Si hubo un problema al crear el alumno, mostrar un mensaje de error
@@ -152,7 +151,7 @@ function FormularioAñadir({User}) {
         setUsername(response.data.username);
         clean();
         listaAlumnos();
-     // console.log(response.data);
+        // console.log(response.data);
       })
       .catch(function (error) {
         console.log("Error en axios: ", error);
@@ -194,7 +193,7 @@ function FormularioAñadir({User}) {
       tipo_movi: selectedtransp,
       tiempo: tiempo,
       distancia: distancia,
-      idUsuario: User.user.idusuario
+      idUsuario: User.user.idusuario,
     })
       .then(function (response) {
         listaAlumnos();
@@ -210,7 +209,9 @@ function FormularioAñadir({User}) {
 
   //eliminar alumnos
   const deleteAlumno = (idAlumno) => {
-    Axios.delete(`http://localhost:3000/deleteAlumno/${idAlumno}/${User.user.idusuario}`)
+    Axios.delete(
+      `http://localhost:3000/deleteAlumno/${idAlumno}/${User.user.idusuario}`
+    )
       .then(function (response) {
         listaAlumnos();
         // console.log("entro en then: ", response);
@@ -265,10 +266,10 @@ function FormularioAñadir({User}) {
   const handleInputDocu = (event) => {
     const inputValue = event.target.value;
     if (/^\d{0,10}$/.test(inputValue)) {
-      setNro_docu(inputValue);   
+      setNro_docu(inputValue);
     }
-    setPassword(nro_docu)
-    setUsername(nro_docu)
+    setPassword(nro_docu);
+    setUsername(nro_docu);
   };
 
   const handleInputTele = (event) => {
@@ -536,7 +537,11 @@ function FormularioAñadir({User}) {
                   <td>{value.EstadoAlumnoDescripcion}</td>
                   <td>
                     <ButtonGroup aria-label="botones">
-                      <Button variant="primary">Info</Button>
+                      <Link
+                        to={`/info/${User.user.username}/${value.idAlumnos}`}
+                      >
+                        <Button variant="primary">Info</Button>
+                      </Link>
                       <Button
                         variant="warning"
                         onClick={() => {

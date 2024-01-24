@@ -10,6 +10,7 @@ import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
+import { Link } from "react-router-dom";
 
 function ProfesoresForm({User}) {
   const [nombre, setNombre] = useState("");
@@ -396,7 +397,11 @@ function ProfesoresForm({User}) {
                   <td>{value.Numero_telefono}</td>
                   <td>
                     <ButtonGroup aria-label="botones">
-                      <Button variant="primary">Info</Button>
+                    <Link
+                        to={`/profes/${User.user.username}/${value.idProfesores}`}
+                      >
+                        <Button variant="primary">Info</Button>
+                      </Link>
                       <Button
                         variant="warning"
                         onClick={() => {

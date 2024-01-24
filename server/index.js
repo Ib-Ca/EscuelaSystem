@@ -2968,6 +2968,67 @@ app.put("/server/changePass", async (req, res) => {
   }
 });
 
+/////alnos
+app.get('/alumnos/:idAlumno', (req, res) => {
+  const idAlumno = req.params.idAlumno;
+  const consulta = `
+    SELECT 
+      a.idAlumnos,
+      a.Nombre,
+      a.Apellido,
+      a.Numero_docu,
+      a.Numero_telefono,
+      a.Lugar_nacimiento,
+      a.Fecha_nacimiento,
+      a.Correo,
+      a.Estado_civil_idEstado_civil,
+      ec.Descripcion AS EstadoCivilDescripcion,
+      a.Documento_idDocumento,
+      d.Tipo_docu AS TipoDocumento,
+      a.Nacionalidad_idNacionalidad,
+      n.Descripcion AS NacionalidadDescripcion,
+      a.Semestre_idSemestre,
+      s.Nombre AS SemestreNombre,
+      s.Seccion_idSeccion,
+      secc.descripcion AS SeccionDescripcion,
+      a.Estado_alumno_idEstado_alumno,
+      ea.descripcion AS EstadoAlumnoDescripcion,
+      a.Movilidad_idMovilidad,
+      m.descripcion AS MovilidadDescripcion,
+      a.tiempo,
+      a.distancia,
+      a.Seccion
+    FROM 
+      alumnos a
+    JOIN 
+      estado_civil ec ON a.Estado_civil_idEstado_civil = ec.idEstado_civil
+    JOIN 
+      documento d ON a.Documento_idDocumento = d.idDocumento
+    JOIN 
+      nacionalidad n ON a.Nacionalidad_idNacionalidad = n.idNacionalidad
+    LEFT JOIN
+      semestre s ON a.Semestre_idSemestre = s.idSemestre
+    LEFT JOIN
+      seccion secc ON s.Seccion_idSeccion = secc.idSeccion
+    JOIN
+      estado_alumno ea ON a.Estado_alumno_idEstado_alumno = ea.idEstado_alumno
+    JOIN
+      movilidad m ON a.Movilidad_idMovilidad = m.idMovilidad
+    WHERE
+      a.idAlumnos = ?;
+  `;
+
+  db.query(consulta, [idAlumno], (error, resultados) => {
+    if (error) {
+      console.error(error);
+      res.status(500).send('Error al recuperar datos del alumno.');
+    } else {
+      const alumno = resultados[0];
+      res.json(alumno);
+    }
+  });
+});
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

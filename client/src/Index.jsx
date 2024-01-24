@@ -27,6 +27,8 @@ import CheckProcesos from "./components/alumnos/CheckProcesos.jsx";
 import Presentes from "./components/alumnos/Presentes.jsx";
 import Historial from "./components/Historial.jsx";
 import CambiarPass from "./components/CambiarPass.jsx";
+import InfoAlumnos from "./components/InfoAlumnos.jsx";
+import InfoProfesores from "./components/InfoProfesores.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -93,6 +95,14 @@ function Index() {
                   <Route
                     path="/historial/:username"
                     element={<Historial User={data} />}
+                  />
+                  <Route
+                    path="/info/:username/:idAlumno"
+                    element={<InfoAlumnos User={data} />}
+                  />
+                  <Route
+                    path="/profes/:username/:idProfesores"
+                    element={<InfoProfesores User={data} />}
                   />
                 </>
               )}

@@ -2436,6 +2436,7 @@ app.put("/procesoXalumno/:idProceso/:idAlumno", (req, res) => {
   );
 });
 
+//alumnos que hicieron el proceso concreto
 app.get("/server/procesoxalumno/:idProceso", (req, res) => {
   const idProceso = req.params.idProceso;
 
@@ -2465,6 +2466,92 @@ app.get("/server/procesoxalumno/:idProceso", (req, res) => {
     res.json(results);
   });
 });
+
+//all usuarios
+app.get("/server/getUsers", (req, res) => {
+  const selectUsersQuery =
+    "SELECT idusuario, username FROM usuario WHERE Tipo_usuario_idTipo_usuario <> 1";
+  db.query(selectUsersQuery, (error, results) => {
+    if (error) {
+      console.error("Error al obtener usuarios:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+//restaurar password
+app.put("/restorePass/:username", async (req, res) => {
+  try {
+    const username = req.params.username;
+    //hasheo
+    bcrypt.hash(username, saltRounds, async (err, hash) => {
+      if (err) {
+        console.error("Error al generar el hash de la contraseña:", err);
+        res.status(500).send("Hubo un error al actualizar el usuario");
+        return;
+      }
+      await db.query("UPDATE usuario SET password=? WHERE username=?", [
+        hash,
+        username,
+      ]);
+      res.status(200).json({
+        message: "Exito",
+      });
+    });
+  } catch (error) {
+    console.error("Error en createUser:", error);
+    res.status(500).send("Hubo un error");
+  }
+});
+
+//obtener horario para asistencia
+app.get("/server/getHorario/:idusuario", (req, res) => {
+  const idusuario = req.params.idusuario;
+  const query = `
+    SELECT
+      H.idHorario,
+      H.dia,
+      H.año,
+      H.estado,
+      H.inicio,
+      H.fin,
+      S.idSemestre,
+      S.Nombre AS NombreSemestre,
+      M.idMaterias,
+      M.Nombre AS NombreMateria,
+      SE.idSeccion,
+      SE.descripcion AS DescripcionSeccion
+    FROM horario H
+    JOIN semestre S ON H.Semestre_idSemestre = S.idSemestre
+    JOIN materias M ON S.Materias_idMaterias = M.idMaterias
+    JOIN seccion SE ON S.Seccion_idSeccion = SE.idSeccion
+    JOIN profesores P ON S.Profesores_idProfesores = P.idProfesores
+    WHERE P.usuario_idusuario = ?;
+  `;
+
+  db.query(query, [idusuario], (error, result) => {
+    if (error) {
+      console.error("Error al obtener el horario:", error);
+      res.status(500).send("Hubo un error al obtener el horario");
+      return;
+    }
+
+    if (result.length === 0) {
+      res.status(404).send("No se encontró un horario asociado al usuario");
+      return;
+    }
+
+    // Enviar el resultado como respuesta
+    res.json(result);
+  });
+});
+
+//obtener alumon horario
+app.get("/server/dateAlumno/:idSemestre",(req,res)=>{
+  
+})
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

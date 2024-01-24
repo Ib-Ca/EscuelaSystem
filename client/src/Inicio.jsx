@@ -1,5 +1,6 @@
 import Axios from "axios";
 import React, { useEffect, useState } from "react";
+import Container from "react-bootstrap/esm/Container";
 import { useNavigate } from "react-router-dom";
 
 export const Inicio = () => {
@@ -19,5 +20,9 @@ export const Inicio = () => {
       })
       .catch((err) => console.log(err));
   }, []);
-  return <div>pantalla de bienvenidA HOLAAAA {user}</div>;
+  return (
+    <Container style={{ textAlign: 'center' }}>
+      <h3>Bienvenido {user}!!!!</h3>
+    </Container>
+  );
 };

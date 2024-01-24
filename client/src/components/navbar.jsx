@@ -43,6 +43,11 @@ export default function NavbarDefault({ User }) {
                   Semestres
                 </NavDropdown.Item>
                 <NavDropdown.Item href="/horario">Horarios</NavDropdown.Item>
+                <NavDropdown.Item
+                  href={`/usuarios/${User && User.user && User.user.username}`}
+                >
+                  Usuarios
+                </NavDropdown.Item>
               </NavDropdown>
             )}
 
@@ -66,7 +71,16 @@ export default function NavbarDefault({ User }) {
                   href={`/profesor/procesos/${
                     User && User.user && User.user.username
                   }`}
-                >Procesos</NavDropdown.Item>
+                >
+                  Procesos
+                </NavDropdown.Item>
+                <NavDropdown.Item
+                  href={`/asistencias/${
+                    User && User.user && User.user.username
+                  }`}
+                >
+                  Asistencias
+                </NavDropdown.Item>
               </NavDropdown>
             )}
             {User && (User.user.rol === 1 || User.user.rol === 3) && (

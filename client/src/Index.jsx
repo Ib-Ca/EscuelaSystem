@@ -17,6 +17,9 @@ import VerObsProfe from "./components/profesores/verObsProfe.jsx";
 import Procesos from "./components/profesores/Procesos.jsx";
 import ProcesosAsignar from "./components/profesores/ProcesosAsignar.jsx";
 import ProcesoVer from "./components/profesores/ProcesoVer.jsx";
+import UsuarioLista from "./components/UsuarioLista.jsx";
+import Asistencias from "./components/profesores/Asistencias.jsx";
+import TomarAsistencia from "./components/profesores/TomarAsistencia.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -67,6 +70,10 @@ function Index() {
                     element={<Horarios />}
                   />
                   <Route path="/horario" element={<Allhorario />} />
+                  <Route
+                    path="/usuarios/:username"
+                    element={<UsuarioLista User={data} />}
+                  />
                 </>
               )}
               {data && (data.user.rol === 1 || data.user.rol === 2) && (
@@ -96,7 +103,16 @@ function Index() {
                     element={<ProcesoVer User={data} />}
                     User={data}
                   />
-                  
+                  <Route
+                    path="/asistencias/:username"
+                    element={<Asistencias User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/tomar-asistencia/:idHorario/:idSemestre/:dia/:NombreMateria/:NombreSemestre/:DescripcionSeccion/:username"
+                    element={<TomarAsistencia User={data} />}
+                    User={data}
+                  />
                 </>
               )}
               <Route path="*" element={<Inicio />} />

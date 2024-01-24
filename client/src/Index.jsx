@@ -20,6 +20,7 @@ import ProcesoVer from "./components/profesores/ProcesoVer.jsx";
 import UsuarioLista from "./components/UsuarioLista.jsx";
 import Asistencias from "./components/profesores/Asistencias.jsx";
 import TomarAsistencia from "./components/profesores/TomarAsistencia.jsx";
+import VerAsistencias from "./components/profesores/VerAsistencias.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -111,6 +112,11 @@ function Index() {
                   <Route
                     path="/tomar-asistencia/:idHorario/:idSemestre/:dia/:NombreMateria/:NombreSemestre/:DescripcionSeccion/:username"
                     element={<TomarAsistencia User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/ver-asistencia/:idHorario/:idSemestre/:dia/:NombreMateria/:NombreSemestre/:DescripcionSeccion/:username"
+                    element={<VerAsistencias User={data} />}
                     User={data}
                   />
                 </>

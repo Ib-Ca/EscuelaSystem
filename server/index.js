@@ -2549,9 +2549,75 @@ app.get("/server/getHorario/:idusuario", (req, res) => {
 });
 
 //obtener alumon horario
-app.get("/server/dateAlumno/:idSemestre",(req,res)=>{
-  
-})
+app.get("/server/dateAlumno/:idSemestre", (req, res) => {
+  const idSemestre = req.params.idSemestre;
+  const query = `
+    SELECT a.idAlumnos, a.Nombre, a.Apellido
+    FROM alumnos a
+    WHERE a.Semestre_idSemestre = ?;
+  `;
+  db.query(query, [idSemestre], (error, result) => {
+    if (error) {
+      console.error("Error al obtener datos del alumno:", error);
+      res.status(500).send("Hubo un error al obtener datos del alumno");
+      return;
+    }
+    if (result.length === 0) {
+      res
+        .status(404)
+        .send("No se encontraron alumnos para el semestre proporcionado");
+      return;
+    }
+    res.json(result);
+  });
+});
+
+//guardar asistencia
+app.post("/saveAssist", (req, res) => {
+  const { formattedDate, idHorario, seleccionados } = req.body;
+  const insertAsistenciasQuery = `
+    INSERT INTO asistencias (Horario_idHorario, fecha)
+    VALUES (?, ?);
+  `;
+  db.query(
+    insertAsistenciasQuery,
+    [idHorario, formattedDate],
+    function (error, result) {
+      if (error) {
+        console.error("Error al insertar en asistencias:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Hubo un error al guardar asistencias.",
+        });
+      }
+      const asistenciasId = result.insertId;
+      const insertPresenciaQuery = `
+        INSERT INTO presencia (Alumnos_idAlumnos, Asistencias_idAsistencias, Asistio)
+        VALUES (?, ?, ?);
+      `;
+      Object.entries(seleccionados).forEach(([idAlumno, estadoAsistencia]) => {
+        db.query(
+          insertPresenciaQuery,
+          [idAlumno, asistenciasId, estadoAsistencia],
+          function (error) {
+            if (error) {
+              console.error("Error al insertar en presencia:", error);
+              return res.status(500).json({
+                success: false,
+                message:
+                  "Hubo un error al guardar la asistencia de los alumnos.",
+              });
+            }
+          }
+        );
+      });
+      return res.json({
+        success: true,
+        message: "Asistencias guardadas correctamente.",
+      });
+    }
+  );
+});
 
 app.listen(3000, () => {
   console.log("Funca puerto 3000");

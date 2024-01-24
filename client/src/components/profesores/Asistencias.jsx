@@ -7,6 +7,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import Card from "react-bootstrap/Card";
 import Pagination from "react-bootstrap/Pagination";
 import Form from "react-bootstrap/Form";
+import ButtonGroup from "react-bootstrap/esm/ButtonGroup";
 function Asistencias({ User }) {
   const { username } = useParams();
   const navigate = useNavigate();
@@ -93,8 +94,6 @@ function Asistencias({ User }) {
               </thead>
               <tbody>
                 {filteredItems.map((item, idx) => {
-                  const isDisabled =
-                    item.dia.toLowerCase() !== currentDay.toLowerCase();
                   return (
                     <tr key={idx}>
                       <td>{idx}</td>
@@ -105,13 +104,22 @@ function Asistencias({ User }) {
                       <td>{item.inicio}</td>
                       <td>{item.fin}</td>
                       <td>
+                        <ButtonGroup>
                         <Link
-                          to={`/tomar-asistencia/${item.idHorario}/${item.idSemestre}/${item.dia}/${item.NombreMateria}/${item.NombreSemestre}/${item.DescripcionSeccion}/${user}`}
+                          to={`/tomar-asistencia/${item.idHorario}/${item.idSemestre}/${item.dia}/${item.NombreMateria}/${item.NombreSemestre}/${item.DescripcionSeccion}/${username}`}
                         >
-                          <Button disabled={isDisabled}>
+                          <Button variant="info">
                             Tomar Asistencia
                           </Button>
                         </Link>
+                        <Link
+                          to={`/ver-asistencia/${item.idHorario}/${item.idSemestre}/${item.dia}/${item.NombreMateria}/${item.NombreSemestre}/${item.DescripcionSeccion}/${username}`}
+                        >
+                          <Button variant="success">
+                            Ver Asistencias
+                          </Button>
+                        </Link>
+                        </ButtonGroup>
                       </td>
                     </tr>
                   );

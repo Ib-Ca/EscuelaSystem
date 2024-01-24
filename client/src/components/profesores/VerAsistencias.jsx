@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Container from "react-bootstrap/esm/Container";
 import { useParams, useNavigate } from "react-router-dom";
-import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/esm/Table";
 import Axios from "axios";
-import Form from "react-bootstrap/Form";
-import CardFooter from "react-bootstrap/esm/CardFooter";
 
 function VerAsistencias({ User }) {
   const {
@@ -26,17 +23,18 @@ function VerAsistencias({ User }) {
     }
   }, [User, username, navigate]);
   ////////////////////////////////////////////
-  const [alumno, setAlumno] = useState([]);
+  const [asist, setAsist] = useState([]);
 
-  //obtener alumnos
+  //obtener asists
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (idSemestre) {
+        if (idHorario) {
           const response = await Axios.get(
-            `http://localhost:3000/server/dateAlumno/${idSemestre}`
+            `http://localhost:3000/server/Assists/${idHorario}`
           );
-          setAlumno(response.data);
+          setAsist(response.data.asistencias);
+          //console.log(response.data.asistencias);
         } else {
           console.error("Error");
         }
@@ -50,9 +48,7 @@ function VerAsistencias({ User }) {
     <>
       <Container>
         <Card>
-          <Card.Header as="h3">
-            Asistencias de {NombreMateria}
-          </Card.Header>
+          <Card.Header as="h3">Asistencias de {NombreMateria}</Card.Header>
           <Card.Body>
             <Card.Title as="h4">
               {NombreSemestre}---{DescripcionSeccion}
@@ -63,17 +59,22 @@ function VerAsistencias({ User }) {
                   <th>#</th>
                   <th>Nombre</th>
                   <th>Apellido</th>
-                  <th>P</th>
-                  <th>A</th>
+                  <th>Fecha</th>
+                  <th>Asistió</th>
                 </tr>
               </thead>
               <tbody>
-                {alumno.map((item, idx) => {
+                {asist.map((item, idx) => {
+                  const formattedDate = new Date(item.fecha).toLocaleDateString(
+                    "es-ES"
+                  );
                   return (
                     <tr key={idx}>
                       <td>{idx}</td>
-                      <td>{item.Apellido}</td>
                       <td>{item.Nombre}</td>
+                      <td>{item.Apellido}</td>
+                      <td>{formattedDate}</td>
+                      <td>{item.Asistio}</td>
                     </tr>
                   );
                 })}
@@ -86,6 +87,4 @@ function VerAsistencias({ User }) {
   ) : null;
 }
 
-
-
-export default VerAsistencias
+export default VerAsistencias;

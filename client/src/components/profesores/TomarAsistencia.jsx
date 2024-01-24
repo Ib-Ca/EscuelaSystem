@@ -96,6 +96,7 @@ function TomarAsistencia({ User }) {
         "http://localhost:3000/saveAssist",
         data
       );
+      navigate(`/asistencias/${username}`);
     } catch (error) {
       console.error("Error al obtener datos:", error);
     }
@@ -134,9 +135,9 @@ function TomarAsistencia({ User }) {
                           type="radio"
                           name={`group${idx}`}
                           aria-label={`radio ${idx}`}
-                          checked={seleccionados[item.idAlumnos] === "Ausente"}
+                          checked={seleccionados[item.idAlumnos] === "Presente"}
                           onChange={() =>
-                            handleRadioChange(item.idAlumnos, "Ausente")
+                            handleRadioChange(item.idAlumnos, "Presente")
                           }
                         />
                       </td>
@@ -145,9 +146,9 @@ function TomarAsistencia({ User }) {
                           type="radio"
                           name={`group${idx}`}
                           aria-label={`radio ${idx}`}
-                          checked={seleccionados[item.idAlumnos] === "Presente"}
+                          checked={seleccionados[item.idAlumnos] === "Ausente"}
                           onChange={() =>
-                            handleRadioChange(item.idAlumnos, "Presente")
+                            handleRadioChange(item.idAlumnos, "Ausente")
                           }
                         />
                       </td>

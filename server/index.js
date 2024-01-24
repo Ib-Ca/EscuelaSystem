@@ -2619,6 +2619,32 @@ app.post("/saveAssist", (req, res) => {
   );
 });
 
+//obtener assitencias
+app.get("/server/Assists/:idHorario", (req, res) => {
+  const idHorario = req.params.idHorario;
+  const getAsistenciasQuery = `
+    SELECT a.idAsistencias, a.fecha, p.Alumnos_idAlumnos, p.Asistio, al.Nombre, al.Apellido
+    FROM asistencias a
+    LEFT JOIN presencia p ON a.idAsistencias = p.Asistencias_idAsistencias
+    LEFT JOIN alumnos al ON p.Alumnos_idAlumnos = al.idAlumnos
+    WHERE a.Horario_idHorario = ?;
+  `;
+  db.query(getAsistenciasQuery, [idHorario], (error, result) => {
+    if (error) {
+      console.error(
+        "Error al obtener asistencias, presencias y datos del alumno:",
+        error
+      );
+      return res.status(500).json({
+        success: false,
+        message:
+          "Hubo un error al obtener las asistencias, presencias y datos del alumno.",
+      });
+    }
+    return res.json({ success: true, asistencias: result });
+  });
+});
+
 app.listen(3000, () => {
   console.log("Funca puerto 3000");
 });

@@ -51,15 +51,17 @@ CREATE TABLE IF NOT EXISTS `alumnos` (
   CONSTRAINT `fk_Alumnos_Movilidad1` FOREIGN KEY (`Movilidad_idMovilidad`) REFERENCES `movilidad` (`idMovilidad`),
   CONSTRAINT `fk_Alumnos_Nacionalidad1` FOREIGN KEY (`Nacionalidad_idNacionalidad`) REFERENCES `nacionalidad` (`idNacionalidad`),
   CONSTRAINT `fk_Alumnos_Semestre1` FOREIGN KEY (`Semestre_idSemestre`) REFERENCES `semestre` (`idSemestre`)
-) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=108 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.alumnos: ~5 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.alumnos: ~7 rows (aproximadamente)
 INSERT INTO `alumnos` (`idAlumnos`, `Nombre`, `Apellido`, `Numero_docu`, `Numero_telefono`, `Lugar_nacimiento`, `Fecha_nacimiento`, `Correo`, `Estado_civil_idEstado_civil`, `Documento_idDocumento`, `Nacionalidad_idNacionalidad`, `Semestre_idSemestre`, `Estado_alumno_idEstado_alumno`, `Movilidad_idMovilidad`, `tiempo`, `distancia`, `Seccion`) VALUES
-	(99, 'terratemblor', 'nuevamente', 2626, 230660, 'dasdsa', '2024-01-03', 'lm@daspokdp.om', 1, 1, 14, NULL, 1, 0, 12, 62, NULL),
+	(99, 'terratemblor', 'nuevamente', 2626, 230660, 'dasdsa', '2024-01-25', 'lm@daspokdp.om', 1, 1, 14, NULL, 1, 0, 12, 62, NULL),
 	(100, 'Martin', 'Martinez', 1650, 1265, 'dsadsa', '2024-01-02', 'dsa@7878', 1, 1, 14, NULL, 1, 0, 22, 33, NULL),
-	(101, 'Gonzalo Gonzalin', 'Gonzales Gonzalo', 1456165, 906651, 'sad', '2024-01-02', 'ifd2021.carlos.ibarra@gmail.com', 1, 1, 14, NULL, 1, 0, 33, 33, NULL),
+	(101, 'Gonzalo Gonzalin', 'Gonzales Gonzalo', 1456165, 906651, 'sad', '2024-01-25', 'ifd2021.carlos.ibarra@gmail.com', 1, 1, 14, NULL, 1, 0, 33, 33, NULL),
 	(102, 'Alumno', 'Apellido', 412421, 12312321, 'adsa', '2024-01-02', 'hital12.ci@gmail.com', 1, 1, 14, NULL, 1, 0, 33, 33, NULL),
-	(103, 'Marco', 'Aurelio', 4917107, 312321321, 'dasdsads', '2023-12-31', 'dsa@7878', 1, 1, 14, NULL, 1, 0, 33, 33, NULL);
+	(103, 'Marco', 'Aurelio', 4917107, 312321321, 'dasdsads', '2023-12-31', 'dsa@7878', 1, 1, 14, NULL, 1, 0, 33, 33, NULL),
+	(104, 'Fredo', 'Godofredo', 3213215, 15909819, 'Casa', '2024-01-19', 'ifd2021.carlos.ibarra@gmail.com', 1, 1, 14, NULL, 1, 1, 33, 33, NULL),
+	(105, 'Freddy', 'Mercury', 16513513, 23032035, 'dasdsads', '2024-02-02', 'hital12.ci@gmail.com', 1, 1, 1, NULL, 1, 0, 22, 22, NULL);
 
 -- Volcando estructura para tabla proyecto_db.asistencias
 CREATE TABLE IF NOT EXISTS `asistencias` (
@@ -80,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `documento` (
   PRIMARY KEY (`idDocumento`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.documento: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.documento: ~3 rows (aproximadamente)
 INSERT INTO `documento` (`idDocumento`, `Tipo_docu`) VALUES
 	(1, 'Cédula'),
 	(2, 'DNI'),
@@ -93,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `estado_alumno` (
   PRIMARY KEY (`idEstado_alumno`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.estado_alumno: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.estado_alumno: ~3 rows (aproximadamente)
 INSERT INTO `estado_alumno` (`idEstado_alumno`, `descripcion`) VALUES
 	(1, 'Activo'),
 	(2, 'Graduado'),
@@ -132,14 +134,29 @@ CREATE TABLE IF NOT EXISTS `historial` (
   `fecha` date NOT NULL,
   `donde` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `tipo_cambio` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
-  `datos_anteriores` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `datos_anteriores` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `usuario_idusuario` int NOT NULL,
   PRIMARY KEY (`idHistorial`) USING BTREE,
   KEY `fk_Avisos_usuario1_idx` (`usuario_idusuario`),
   CONSTRAINT `fk_Avisos_usuario1` FOREIGN KEY (`usuario_idusuario`) REFERENCES `usuario` (`idusuario`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.historial: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.historial: ~14 rows (aproximadamente)
+INSERT INTO `historial` (`idHistorial`, `fecha`, `donde`, `tipo_cambio`, `datos_anteriores`, `usuario_idusuario`) VALUES
+	(1, '2024-01-24', 'Alumnos', 'Creación', '', 5),
+	(2, '2024-01-24', 'Alumnos', 'Actualización', '{"idAlumnos":101,"Nombre":"Gonzalo Gonzalin","Apellido":"Gonzales Gonzalo","Numero_docu":1456165,"Numero_telefono":906651,"Lugar_nacimiento":"sad","Fecha_nacimiento":"2024-01-02T03:00:00.000Z","Correo":"ifd2021.carlos.ibarra@gmail.com","Estado_civil_idEstado_civil":1,"Documento_idDocumento":1,"Nacionalidad_idNacionalidad":14,"Semestre_idSemestre":null,"Estado_alumno_idEstado_alumno":1,"Movilidad_idMovilidad":0,"tiempo":33,"distancia":33,"Seccion":null}', 5),
+	(4, '2024-01-24', 'Materias', 'Creación', '', 5),
+	(5, '2024-01-24', 'Materias', 'Actualización', '{"Nombre":"Castellano","Carga_horaria":33}', 5),
+	(6, '2024-01-24', 'Materias', 'Eliminación', '{"idMaterias":15,"Nombre":"Patología","Carga_horaria":200}', 5),
+	(7, '2024-01-24', 'Profesor', 'Creación', '', 5),
+	(8, '2024-01-24', 'Profesor', 'Creación', '', 5),
+	(9, '2024-01-24', 'Profesor', 'Creación', '', 5),
+	(10, '2024-01-24', 'Profesor', 'Eliminación', '{"idProfesores":42,"Nombre":"Albert Einstein","Apellido":"Hawkings Junior","Correo":"hital12.ci@gmail.com","Numero_telefono":312321,"Numero_docu":312321,"Estado_civil_idEstado_civil":1,"Nacionalidad_idNacionalidad":3,"Documento_idDocumento":1,"usuario_idusuario":38}', 5),
+	(11, '2024-01-24', 'Profesor', 'Actualización', '{"idProfesores":39,"Nombre":"Richard","Apellido":"Hawkings Junior","Correo":"hital12.ci@gmail.com","Numero_telefono":166,"Numero_docu":741252397,"Estado_civil_idEstado_civil":1,"Nacionalidad_idNacionalidad":14,"Documento_idDocumento":1,"usuario_idusuario":31}', 5),
+	(12, '2024-01-24', 'Alumnos', 'Creación', '', 5),
+	(13, '2024-01-24', 'Alumnos', 'Actualización', '{"idAlumnos":107,"Nombre":"Pedro","Apellido":"Chupacabra","Numero_docu":4916132,"Numero_telefono":156165165,"Lugar_nacimiento":"bkjj","Fecha_nacimiento":"2024-01-26T03:00:00.000Z","Correo":"asda@asd","Estado_civil_idEstado_civil":1,"Documento_idDocumento":1,"Nacionalidad_idNacionalidad":14,"Semestre_idSemestre":null,"Estado_alumno_idEstado_alumno":1,"Movilidad_idMovilidad":0,"tiempo":33,"distancia":33,"Seccion":null}', 5),
+	(14, '2024-01-24', 'Materias', 'Actualización', '{"Nombre":"Matemática","Carga_horaria":5165146}', 5),
+	(15, '2024-01-24', 'Alumnos', 'Eliminación', '{"idAlumnos":107,"Nombre":"Pedro","Apellido":"Chupacabra","Numero_docu":4916132,"Numero_telefono":156165165,"Lugar_nacimiento":"bkjj","Fecha_nacimiento":"2024-01-26T03:00:00.000Z","Correo":"asda@asd","Estado_civil_idEstado_civil":1,"Documento_idDocumento":1,"Nacionalidad_idNacionalidad":14,"Semestre_idSemestre":null,"Estado_alumno_idEstado_alumno":1,"Movilidad_idMovilidad":0,"tiempo":33,"distancia":33,"Seccion":null}', 5);
 
 -- Volcando estructura para tabla proyecto_db.horario
 CREATE TABLE IF NOT EXISTS `horario` (
@@ -155,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `horario` (
   CONSTRAINT `fk_Horario_Semestre1` FOREIGN KEY (`Semestre_idSemestre`) REFERENCES `semestre` (`idSemestre`)
 ) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.horario: ~3 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.horario: ~0 rows (aproximadamente)
 
 -- Volcando estructura para tabla proyecto_db.indicadores
 CREATE TABLE IF NOT EXISTS `indicadores` (
@@ -171,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `indicadores` (
   CONSTRAINT `FK_indicadores_tipo_indicador` FOREIGN KEY (`idTipoIndicador`) REFERENCES `tipo_indicador` (`idTipoIndicador`)
 ) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.indicadores: ~12 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.indicadores: ~0 rows (aproximadamente)
 
 -- Volcando estructura para tabla proyecto_db.materias
 CREATE TABLE IF NOT EXISTS `materias` (
@@ -179,11 +196,11 @@ CREATE TABLE IF NOT EXISTS `materias` (
   `Nombre` varchar(45) NOT NULL,
   `Carga_horaria` int NOT NULL,
   PRIMARY KEY (`idMaterias`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.materias: ~12 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.materias: ~11 rows (aproximadamente)
 INSERT INTO `materias` (`idMaterias`, `Nombre`, `Carga_horaria`) VALUES
-	(2, 'Castellano', 33),
+	(2, 'Castellano', 34),
 	(3, 'Matemáticas', 445),
 	(4, 'Física', 99),
 	(5, 'Práctica', 4545),
@@ -193,7 +210,7 @@ INSERT INTO `materias` (`idMaterias`, `Nombre`, `Carga_horaria`) VALUES
 	(9, 'Inclusión', 3444),
 	(10, 'Teoría de la Educ', 900),
 	(11, 'Física Cuantica', 150),
-	(12, 'Matemática', 5165146);
+	(12, 'Matemática', 51651);
 
 -- Volcando estructura para tabla proyecto_db.movilidad
 CREATE TABLE IF NOT EXISTS `movilidad` (
@@ -202,7 +219,7 @@ CREATE TABLE IF NOT EXISTS `movilidad` (
   PRIMARY KEY (`idMovilidad`)
 ) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.movilidad: ~5 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.movilidad: ~6 rows (aproximadamente)
 INSERT INTO `movilidad` (`idMovilidad`, `descripcion`) VALUES
 	(0, 'Automóvil'),
 	(1, 'Caminando'),
@@ -255,7 +272,7 @@ CREATE TABLE IF NOT EXISTS `observacion` (
   CONSTRAINT `fk_Observacion_Profesores1` FOREIGN KEY (`Profesores_idProfesores`) REFERENCES `profesores` (`idProfesores`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.observacion: ~4 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.observacion: ~0 rows (aproximadamente)
 
 -- Volcando estructura para tabla proyecto_db.presencia
 CREATE TABLE IF NOT EXISTS `presencia` (
@@ -287,7 +304,7 @@ CREATE TABLE IF NOT EXISTS `procesos` (
   CONSTRAINT `fk_Procesos_Tipo_proceso1` FOREIGN KEY (`Tipo_proceso_idTipo_proceso`) REFERENCES `tipo_proceso` (`idTipo_proceso`)
 ) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.procesos: ~9 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.procesos: ~0 rows (aproximadamente)
 
 -- Volcando estructura para tabla proyecto_db.procesosxalumno
 CREATE TABLE IF NOT EXISTS `procesosxalumno` (
@@ -325,7 +342,7 @@ CREATE TABLE IF NOT EXISTS `profesores` (
   CONSTRAINT `fk_Profesores_Estado_civil` FOREIGN KEY (`Estado_civil_idEstado_civil`) REFERENCES `estado_civil` (`idEstado_civil`),
   CONSTRAINT `fk_Profesores_Nacionalidad1` FOREIGN KEY (`Nacionalidad_idNacionalidad`) REFERENCES `nacionalidad` (`idNacionalidad`),
   CONSTRAINT `fk_Profesores_usuario1` FOREIGN KEY (`usuario_idusuario`) REFERENCES `usuario` (`idusuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb3;
 
 -- Volcando datos para la tabla proyecto_db.profesores: ~6 rows (aproximadamente)
 INSERT INTO `profesores` (`idProfesores`, `Nombre`, `Apellido`, `Correo`, `Numero_telefono`, `Numero_docu`, `Estado_civil_idEstado_civil`, `Nacionalidad_idNacionalidad`, `Documento_idDocumento`, `usuario_idusuario`) VALUES
@@ -334,7 +351,7 @@ INSERT INTO `profesores` (`idProfesores`, `Nombre`, `Apellido`, `Correo`, `Numer
 	(35, 'Pepe', 'Frestes', 'ifd2021.carlos.ibarra@gmail.com', 321213, 2323, 1, 1, 1, 26),
 	(37, 'Julio', 'Merendez', 'hital12.ci@gmail.com', 321321, 3123, 1, 14, 1, 29),
 	(38, 'Alfonso', 'Gutierrez', 'asdsa@das.com', 321, 32131331, 1, 1, 1, 30),
-	(39, 'Richard', 'Hawkings', 'hital12.ci@gmail.com', 166, 741252397, 1, 14, 1, 31);
+	(39, 'Richard', 'Hawkings Junior', 'hital12.ci@gmail.com', 166, 741252397, 1, 14, 1, 31);
 
 -- Volcando estructura para tabla proyecto_db.seccion
 CREATE TABLE IF NOT EXISTS `seccion` (
@@ -372,7 +389,7 @@ CREATE TABLE IF NOT EXISTS `semestre` (
   CONSTRAINT `fk_Semestre_Seccion1` FOREIGN KEY (`Seccion_idSeccion`) REFERENCES `seccion` (`idSeccion`)
 ) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.semestre: ~11 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.semestre: ~0 rows (aproximadamente)
 
 -- Volcando estructura para tabla proyecto_db.tipo_indicador
 CREATE TABLE IF NOT EXISTS `tipo_indicador` (
@@ -409,7 +426,7 @@ CREATE TABLE IF NOT EXISTS `tipo_usuario` (
   PRIMARY KEY (`idTipo_usuario`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.tipo_usuario: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.tipo_usuario: ~3 rows (aproximadamente)
 INSERT INTO `tipo_usuario` (`idTipo_usuario`, `descripcion`) VALUES
 	(1, 'Admin'),
 	(2, 'Profesor'),
@@ -427,9 +444,9 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   KEY `fk_usuario_Alumnos1_idx` (`Alumnos_idAlumnos`),
   CONSTRAINT `fk_usuario_Alumnos1` FOREIGN KEY (`Alumnos_idAlumnos`) REFERENCES `alumnos` (`idAlumnos`),
   CONSTRAINT `fk_usuario_Tipo_usuario1` FOREIGN KEY (`Tipo_usuario_idTipo_usuario`) REFERENCES `tipo_usuario` (`idTipo_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla proyecto_db.usuario: ~15 rows (aproximadamente)
+-- Volcando datos para la tabla proyecto_db.usuario: ~17 rows (aproximadamente)
 INSERT INTO `usuario` (`idusuario`, `username`, `password`, `Tipo_usuario_idTipo_usuario`, `Alumnos_idAlumnos`) VALUES
 	(5, 'admin1', '$2b$10$7VI4AM1E3SFmULZoLyHsMe/CG7.Fzkws5zhYIUw0ZArAcq7TkuO8S', 1, NULL),
 	(6, 'admin2', '$2b$10$kGkk6nslW2.sEhC80ozWmet.AqV/8gvCoB8BV7DgNNCV4NwZpYj0G', 1, NULL),
@@ -438,14 +455,16 @@ INSERT INTO `usuario` (`idusuario`, `username`, `password`, `Tipo_usuario_idTipo
 	(11, '2626', '$2b$10$twi2OOvm0Cfxx0wWBQyj7e5x2V7DB2a94Cr8FNjPtiO436SmFC/zK', 3, 99),
 	(12, '1650', '$2b$10$Gt1CZsy7J4EiB9kEte6LtOzW0we68O3qKD8mt0DXXiWlKCMgyizAG', 3, 100),
 	(23, '1456165', '$2b$10$rMnvRpim5/g1USAgHi3jbud1ZgyI992skfTwqpGOY/KyO6qjXdHby', 3, 101),
-	(24, '111111', '$2b$10$pz2/bsIojUmh0YFebD.GKe78d5npvZhyUrtrma5c80MoDeQshUwxa', 2, NULL),
+	(24, '111111', '$2b$10$RfPjbvY/rWx3oB.e6koaveBgcGqvg..0Q0M6oZrgom6oVrf9ssgq6', 2, NULL),
 	(25, '65135', '$2b$10$O.if.xPAsDsCasCJFveROexhHmd.nAGNe3rqlX6ss8QYFLIhgwwNS', 2, NULL),
 	(26, '2323', '$2b$10$fKjZI6ZVpzLgYMMBylZPP.DiSQqk3b8sWdea.zuXd6dI3RKJgvAUG', 2, NULL),
 	(27, '412421', '$2b$10$MsPVIaQWNZ1N/tBCpfSo/OlJySkuxnQf/wEk93.L9BdQD9KoONj6W', 3, 102),
 	(29, '3123', '$2b$10$ElIb7eM6yi.KrVn5yleOqu1nMi8ow5azuKAS1faQBvvs3H4UWsoqW', 2, NULL),
 	(30, '32131331', '$2b$10$N9GmQ4I0EH9Wsn5/eznbA.9Wq3Lv3Qw3Ys8.2p6iWX4wXh5CsyX.q', 2, NULL),
 	(31, '0741252397', '$2b$10$ry10T48HIxO/zY5GFSh6ee8ILDwpjGQ4GsSJWU1bgvZC4.pvdZdA6', 2, NULL),
-	(32, '4917107', '$2b$10$eVtSbSlYoqBOimbhOscieOy6xNROx/aC5XQflqmTO0t4TWAzKy2qK', 3, 103);
+	(32, '4917107', '$2b$10$eVtSbSlYoqBOimbhOscieOy6xNROx/aC5XQflqmTO0t4TWAzKy2qK', 3, 103),
+	(33, '3213215', '$2b$10$wXsThcVOzZXmQSl0cUJtg.kjR0MhHdMTzNEXiS.s26SiEyFa0/q.y', 3, 104),
+	(34, '16513513', '$2b$10$ZRj8j1CLSU3oKUyulhC22OHntRP9qvs1KKYazGajxVKA/0aO53TIa', 3, 105);
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

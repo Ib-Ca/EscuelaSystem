@@ -2685,6 +2685,7 @@ app.get("/porFavorSemestre/:Nombre", (req, res) => {
   });
 });
 
+//alumnos procesos ver
 app.get("/alumno/proceso/:idSemestre", (req, res) => {
   const idSemestre = req.params.idSemestre;
 
@@ -2696,6 +2697,25 @@ app.get("/alumno/proceso/:idSemestre", (req, res) => {
   `;
 
   db.query(obtenerDatosQuery, [idSemestre], (err, resultados) => {
+    if (err) {
+      throw err;
+    }
+
+    res.json(resultados);
+  });
+});
+
+//alumnos asistencias ver
+app.get("/asistenciasnomas/:idAlumnos", (req, res) => {
+  const idAlumno = req.params.idAlumnos;
+  const obtenerDatosQuery = `
+    SELECT a.*, h.inicio, h.fin, p.Asistio
+    FROM asistencias a
+    LEFT JOIN presencia p ON a.idAsistencias = p.Asistencias_idAsistencias
+    LEFT JOIN horario h ON a.Horario_idHorario = h.idHorario
+    WHERE p.Alumnos_idAlumnos = ?;
+  `;
+  db.query(obtenerDatosQuery, [idAlumno], (err, resultados) => {
     if (err) {
       throw err;
     }

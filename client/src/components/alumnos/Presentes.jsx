@@ -6,12 +6,10 @@ import Table from "react-bootstrap/esm/Table";
 import ButtonGroup from "react-bootstrap/esm/ButtonGroup";
 import Button from "react-bootstrap/Button";
 import { useEffect, useState } from "react";
-
-function CheckProcesos({ User }) {
-  const { username, idSemestre } = useParams();
+function Presentes({ User }) {
+  const { username } = useParams();
   const navigate = useNavigate();
   const [lista, setLista] = useState([]);
-  console.log(User.user.Alumnos_idAlumnos);
   //check url y user log
   useEffect(() => {
     if (!(User && User.user.username === username)) {
@@ -24,13 +22,9 @@ function CheckProcesos({ User }) {
       try {
         if (User) {
           const response = await Axios.get(
-            `http://localhost:3000/alumno/proceso/${idSemestre}`
+            `http://localhost:3000/asistenciasnomas/${User.user.Alumnos_idAlumnos}`
           );
-          const filteredResults = response.data.filter(
-            (item) => item.Alumnos_idAlumnos === User.user.Alumnos_idAlumnos
-          );
-          console.log(filteredResults);
-          setLista(filteredResults);
+          setLista(response.data);
         } else {
           console.error("Error");
         }
@@ -51,31 +45,22 @@ function CheckProcesos({ User }) {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Tarea</th>
-                  <th>Estado</th>
-                  <th>Entregar</th>
-                  <th>Entregado</th>
-                  <th>Tot. Puntos</th>
-                  <th>Log. Puntos</th>
+                  <th>Fecha</th>
+                  <th>Hora Inicio</th>
+                  <th>Hora Fin</th>
+                  <th>Asistencia</th>
                 </tr>
               </thead>
               <tbody>
                 {lista.map((item, idx) => {
-                  const fechaEntregaFormateada = new Date(
-                    item.fecha_entrega
-                  ).toLocaleDateString();
-                  const fechaEntregadoFormateada = new Date(
-                    item.fecha_entregado
-                  ).toLocaleDateString();
+                  const fecha = new Date(item.fecha).toLocaleDateString();
                   return (
                     <tr key={idx}>
                       <td>{idx}</td>
-                      <td>{item.nombre}</td>
-                      <td>{item.estado}</td>
-                      <td>{fechaEntregaFormateada}</td>
-                      <td>{fechaEntregadoFormateada}</td>
-                      <td>{item.logrado_puntos}</td>
-                      <td>{item.total_puntos}</td>
+                      <td>{fecha}</td>
+                      <td>{item.inicio}</td>
+                      <td>{item.fin}</td>
+                      <td>{item.Asistio}</td>
                     </tr>
                   );
                 })}
@@ -88,4 +73,4 @@ function CheckProcesos({ User }) {
   ) : null;
 }
 
-export default CheckProcesos;
+export default Presentes;

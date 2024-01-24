@@ -24,6 +24,7 @@ import VerAsistencias from "./components/profesores/VerAsistencias.jsx";
 import VerObservaciones from "./components/alumnos/VerObservaciones.jsx";
 import VerMaterias from "./components/alumnos/VerMaterias.jsx";
 import CheckProcesos from "./components/alumnos/CheckProcesos.jsx";
+import Presentes from "./components/alumnos/Presentes.jsx";
 
 function Index() {
   let navigate = useNavigate();
@@ -139,6 +140,11 @@ function Index() {
                   <Route
                     path="/alumno/procesos/:username/:idSemestre"
                     element={<CheckProcesos User={data} />}
+                    User={data}
+                  />
+                  <Route
+                    path="/alumno/asistencia/:username"
+                    element={<Presentes User={data} />}
                     User={data}
                   />
                 </>

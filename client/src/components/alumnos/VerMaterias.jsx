@@ -69,10 +69,16 @@ function VerMaterias({ User }) {
                       <td>{item.NombreMateria}</td>
                       <td>
                         <ButtonGroup>
-                          <Link to={`/alumno/procesos/${username}/${item.idSemestre}`}>
+                          <Link
+                            to={`/alumno/procesos/${username}/${item.idSemestre}`}
+                          >
                             <Button variant="success">Ver Procesos</Button>
                           </Link>
-                          <Button variant="info">Ver Asistencias</Button>
+                          <Link
+                            to={`/alumno/asistencia/${username}`}
+                          >
+                            <Button variant="info">Ver Asistencias</Button>
+                          </Link>
                         </ButtonGroup>
                       </td>
                     </tr>

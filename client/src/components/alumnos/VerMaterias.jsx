@@ -49,15 +49,15 @@ function VerMaterias({ User }) {
     <>
       <Container>
         <Card>
-          <Card.Header>Featured</Card.Header>
+          <Card.Header as="h3">Listado de Materias</Card.Header>
           <Card.Body>
             <Table bordered hover>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Username</th>
+                  <th>Semestre</th>
+                  <th>Sección</th>
+                  <th>Materia</th>
                 </tr>
               </thead>
               <tbody>

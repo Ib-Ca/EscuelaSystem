@@ -1,7 +1,0 @@
-express session https://www.npmjs.com/package/express-session
-mysql node https://www.npmjs.com/package/mysql
-
-
-
-https://mfikri.com/en/blog/react-express-mysql-authentication
-https://medium.com/@vrinmkansal/quickstart-jwt-based-login-for-react-express-app-eebf4ea9cfe8
